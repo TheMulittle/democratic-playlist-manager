@@ -3,11 +3,14 @@ const asyncHandler = require("express-async-handler");
 const authenticationService = require("../services/spotifyAuthenticationService");
 const UserNotAuthenticatedError = require("../errors/UserNotAuthenticatedError");
 const index = require("../controllers/index");
+const nativeRegistrationController = require("../controllers/nativeRegistrationController");
+
 const router = express.Router();
 
-
-// TODO refactor these endpoints name, they are pretty bad and we want to be closer to REST standard practices (names should be nouns) and
-// verbs. The methods (GET, PUT, DELETE) are the verbs along with state in the body
+router.post(
+  "/users/register",
+  asyncHandler(nativeRegistrationController.registerUser)
+);
 
 router.get("/secret-login", index.login);
 router.get("/callback", index.callback);
@@ -49,5 +52,4 @@ function ensureSpotifyAuthentication(req, res, next) {
   return next();
 }
 
-
-module.exports = router
+module.exports = router;

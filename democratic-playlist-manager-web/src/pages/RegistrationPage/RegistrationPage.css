@@ -1,0 +1,34 @@
+.RegistrationPage {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 400px;
+  margin: 40px auto;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.RegistrationPage h2 {
+  text-align: center;
+  margin: 0;
+}
+
+.RegistrationPage input {
+  padding: 12px 14px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 500px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.RegistrationPage .success {
+  color: #1db954;
+  text-align: center;
+}
+
+.RegistrationPage .error {
+  color: #e74c3c;
+  text-align: center;
+}

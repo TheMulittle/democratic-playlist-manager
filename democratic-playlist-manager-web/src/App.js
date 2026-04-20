@@ -3,6 +3,7 @@ import { Component } from 'react'
 import './App.css'
 import Layout from './UI/Layout/Layout'
 import LoginPage from './pages/LoginPage/LoginPage'
+import RegistrationPage from './pages/RegistrationPage/RegistrationPage'
 import { Redirect, Route, Switch } from 'react-router'
 import { BrowserRouter } from 'react-router-dom'
 import PlaylistManagementPage from './pages/PlaylistManagementPage/PlaylistManagementPage'
@@ -15,6 +16,7 @@ class App extends Component {
           <Layout>
             <Switch>
               <Route from="/playlist" component={PlaylistManagementPage} />
+              <Route from="/register" component={RegistrationPage} />
               <Route from="/login" component={LoginPage} />
               <Redirect to="/login" />
             </Switch>

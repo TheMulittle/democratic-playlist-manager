@@ -10,7 +10,7 @@ jest.mock("../src/services/playlistManagementService");
 const playlistManagementService = require("../src/services/playlistManagementService");
 
 jest.mock("../src/services/spotifyAuthenticationService.js");
-const spotifyAuthenticationService = require("../src/services/spotifyAuthenticationService.js");
+const spotifyAuthenticationService = require("../src/services/spotifyAuthenticationService");
 
 const ResourceDoesNotBelongToEntityError = require("../src/errors/ResourceDoesNotBelongToEntityError");
 const ResourceNotFoundError = require("../src/errors/ResourceNotFoundError");
@@ -100,7 +100,7 @@ describe("Playlist ordering management endpoints", () => {
       .send();
 
     expect(res.statusCode).toBe(400);
-    expect(res.body.message).toBe(
+    expect(res.body.errorMessage).toBe(
       "The given resource [P1] does not belong to the entity [U1]"
     );
   });
@@ -141,7 +141,7 @@ describe("Playlist ordering management endpoints", () => {
       .send();
 
     expect(res.statusCode).toBe(400);
-    expect(res.body.message).toBe(
+    expect(res.body.errorMessage).toBe(
       "The given resource [P1] does not belong to the entity [U1]"
     );
   });
@@ -159,7 +159,7 @@ describe("Playlist ordering management endpoints", () => {
       .send();
 
     expect(res.statusCode).toBe(404);
-    expect(res.body.message).toBe(
+    expect(res.body.errorMessage).toBe(
       "Resource not found: The given playlist [P1] was never added"
     );
   });
@@ -177,7 +177,7 @@ describe("Playlist ordering management endpoints", () => {
       .send();
 
     expect(res.statusCode).toBe(404);
-    expect(res.body.message).toBe(
+    expect(res.body.errorMessage).toBe(
       "Resource not found: The given playlist [P1] was never added"
     );
   });
@@ -315,7 +315,7 @@ describe("Non authenticated users are not allowed to call protected endpoints", 
 
     expect(spotifyAuthenticationService.isUserAuthenticated).toBeCalledTimes(1);
     expect(res.statusCode).toBe(401);
-    expect(res.body.message).toBe(
+    expect(res.body.errorMessage).toBe(
       "The user is not authenticated. Please ensure to authenticate before performing this action"
     );
   });
@@ -325,18 +325,17 @@ describe("Non authenticated users are not allowed to call protected endpoints", 
 
     expect(spotifyAuthenticationService.isUserAuthenticated).toBeCalledTimes(1);
     expect(res.statusCode).toBe(401);
-    expect(res.body.message).toBe(
+    expect(res.body.errorMessage).toBe(
       "The user is not authenticated. Please ensure to authenticate before performing this action"
     );
   });
-
 
   it("When a client performs a delete request to /playlist without being authenticated, an status code 401 should be returned", async () => {
     const res = await request(server).delete("/playlist/P1").send();
 
     expect(spotifyAuthenticationService.isUserAuthenticated).toBeCalledTimes(1);
     expect(res.statusCode).toBe(401);
-    expect(res.body.message).toBe(
+    expect(res.body.errorMessage).toBe(
       "The user is not authenticated. Please ensure to authenticate before performing this action"
     );
   });
