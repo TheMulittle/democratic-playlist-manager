@@ -1,0 +1,10 @@
+*.swp
+node_modules/
+*.log
+.vscode
+# Enviroment variables
+.env
+
+# Covereage reports
+coverage/
+reports/

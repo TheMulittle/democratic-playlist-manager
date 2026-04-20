@@ -1,0 +1,38 @@
+.Tile {
+  position: relative;
+  width: auto;
+  height: auto;
+  margin: 5px;
+  transition: transform 0.5s;
+  border: 10px solid transparent;
+  border-radius: 5px;
+  cursor: pointer
+}
+
+.Tile:hover {
+  transform: scale(0.95);
+}
+
+.Tile.Highlighted {
+  border-color: rgba(16, 168, 2, 0.5);
+}
+
+.Tile .Description {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  position: absolute;
+  bottom: 0;
+
+  border: 0;
+  margin: 0;
+
+  width: 100%;
+  min-height: 30%;
+
+  background-color: rgba(1, 39, 11, 0.8);
+  font-size: x-large;
+  color: aliceblue;
+  text-align: center;
+}

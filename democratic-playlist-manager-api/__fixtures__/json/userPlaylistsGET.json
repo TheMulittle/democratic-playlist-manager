@@ -1,0 +1,50 @@
+{
+  "playlists": [
+    {
+      "collaborative": true,
+      "description": "",
+      "external_urls": {
+        "spotify": "https://open.spotify.com/playlist/6pscBgsyuswC7yiUbaZAAD"
+      },
+      "href": "https://api.spotify.com/v1/playlists/6pscBgsyuswC7yiUbaZAAD",
+      "id": "6pscBgsyuswC7yiUbaZAAD",
+      "images": [
+        {
+          "height": 640,
+          "url": "https://mosaic.scdn.co/640/ab67616d0000b27319d85a472f328a6ed9b704cfab67616d0000b2733c9047f9aa5d0d1e03827039ab67616d0000b27359779689e1d9c15ca2f76b84ab67616d0000b27392e1c97cd5f1a34876a3e30f",
+          "width": 640
+        },
+        {
+          "height": 300,
+          "url": "https://mosaic.scdn.co/300/ab67616d0000b27319d85a472f328a6ed9b704cfab67616d0000b2733c9047f9aa5d0d1e03827039ab67616d0000b27359779689e1d9c15ca2f76b84ab67616d0000b27392e1c97cd5f1a34876a3e30f",
+          "width": 300
+        },
+        {
+          "height": 60,
+          "url": "https://mosaic.scdn.co/60/ab67616d0000b27319d85a472f328a6ed9b704cfab67616d0000b2733c9047f9aa5d0d1e03827039ab67616d0000b27359779689e1d9c15ca2f76b84ab67616d0000b27392e1c97cd5f1a34876a3e30f",
+          "width": 60
+        }
+      ],
+      "name": "Quarta fria",
+      "owner": {
+        "display_name": "Murilo Gabardo Kramar",
+        "external_urls": {
+          "spotify": "https://open.spotify.com/user/mkramar-us"
+        },
+        "href": "https://api.spotify.com/v1/users/mkramar-us",
+        "id": "mkramar-us",
+        "type": "user",
+        "uri": "spotify:user:mkramar-us"
+      },
+      "primary_color": null,
+      "public": false,
+      "snapshot_id": "OTUsNzJkOTZlYjk5ZDQwZDQ1YjhkY2I3ZWIzMjU3NWM2ODg5ZWY4YjE3Yw==",
+      "tracks": {
+        "href": "https://api.spotify.com/v1/playlists/6pscBgsyuswC7yiUbaZAAD/tracks",
+        "total": 40
+      },
+      "type": "playlist",
+      "uri": "spotify:playlist:6pscBgsyuswC7yiUbaZAAD"
+    }
+  ]
+}

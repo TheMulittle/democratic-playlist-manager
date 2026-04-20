@@ -1,0 +1,14 @@
+.Header {
+  width: 100%;
+  padding-bottom: 2px;
+}
+
+.Header::after {
+  content: '';
+  display: block;
+  position: absolute;
+  height: 1px;
+  background: grey;
+  width: 100%;
+  margin-bottom: 2px;
+}

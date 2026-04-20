@@ -1,0 +1,10 @@
+.Form input {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  border-width: 1px 1px;
+  border-radius: 100px;
+  width: 200px;
+  padding: 16px 14px 18px;
+  margin: 20px 0px;
+}

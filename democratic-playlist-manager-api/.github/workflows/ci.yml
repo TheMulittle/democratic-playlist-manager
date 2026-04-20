@@ -1,0 +1,29 @@
+name: Democratic-Playlist-Back
+
+on:
+  push:
+    branches:
+      - master
+
+  pull_request:
+  
+  workflow_dispatch:
+    
+
+jobs:
+  build:
+    name: Build code base
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Test
+        run: npm run test
+
+      - name: Send coverage results to Codecov
+        uses: codecov/codecov-action@v1
