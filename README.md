@@ -1,17 +1,12 @@
 [![codecov](https://codecov.io/gh/mgkramar/democratic-spotify-playlist-reorderer-back-end/branch/master/graph/badge.svg?token=11N5G337OB)](https://codecov.io/gh/mgkramar/democratic-spotify-playlist-reorderer-back-end) [![HitCount](http://hits.dwyl.com/mgkramar/democratic-spotify-playlist-reorderer-back-end.svg)](http://hits.dwyl.com/mgkramar/democratic-spotify-playlist-reorderer-back-end)
 
-
-
-# Democratic Spotify Playlist Back End
-API to Reorder Collaborative Playlist so each contributor has one song per cycle
-
-The front-end is still to be developed
+# Democratic Playlist Manager
 
 ## OBJECTIVE
 
-You are in a barbecue party in Brazil when you and your friends decided to put some music on. You all decide to create a shared playlist on spotify. One of your friends, Greg, starts adding songs and end up filling the playlist with 30 consecutively Nordic Death Metal songs because he strong believes he is a Viking even though he was born in Sao Paulo. Now, you, that just wanted to relax listening to Sugar by Robert Schulz, is required to wait 5 hours (because each of his songs take 10 minutes) before listening to your beloved song. 
+You are in a barbecue party in Brazil when you and your friends decided to put some music on. You all decide to create a shared playlist on spotify. One of your friends, Greg, starts adding songs and end up filling the playlist with 30 consecutively Nordic Death Metal songs because he strong believes he is a Viking even though he was born in Sao Paulo. Now, you, that just wanted to relax listening to Sugar by Robert Schulz, is required to wait 5 hours (because each of his songs take 10 minutes) before listening to your beloved song
 
-Democratic-playlist comes to the rescue! The idea behind it is simple: a mechanism to reorder spotify playlists in such a manner that at most one song from every person will be played before the second song from someone is played
+Democratic Playlist Manager to the rescue! The idea behind it is simple: a mechanism to reorder spotify playlists in such a manner that at most one song from every person will be played before the second song from someone is played
 
 ## FEATURE ROADMAP
 
@@ -30,7 +25,7 @@ Democratic-playlist comes to the rescue! The idea behind it is simple: a mechani
 
 ## RUNNING THE APP LOCALLY
 
-Clone the repo and run `npm install` to install its dependencies. 
+Clone the repo and run `npm install` to install its dependencies
 
 Before running the app, it is necessary to set some enviroment variables regarding Spotify API authentication via Authorization code flow (more on the subject [here](https://github.com/thelinmichael/spotify-web-api-node#authorization)). For convinience you can add a .env file in which details of the Spotify API can be added during development time:
 
