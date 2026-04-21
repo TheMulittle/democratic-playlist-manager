@@ -23,6 +23,12 @@
   box-sizing: border-box;
 }
 
+.RegistrationPage .divider {
+  text-align: center;
+  color: #888;
+  font-size: 13px;
+}
+
 .RegistrationPage .success {
   color: #1db954;
   text-align: center;

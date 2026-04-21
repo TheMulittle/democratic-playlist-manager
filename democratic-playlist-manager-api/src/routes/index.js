@@ -4,13 +4,13 @@ const authenticationService = require("../services/spotifyAuthenticationService"
 const UserNotAuthenticatedError = require("../errors/UserNotAuthenticatedError");
 const index = require("../controllers/index");
 const nativeRegistrationController = require("../controllers/nativeRegistrationController");
+const spotifyRegistrationController = require("../controllers/spotifyRegistrationController");
 
 const router = express.Router();
 
-router.post(
-  "/users/register",
-  asyncHandler(nativeRegistrationController.registerUser)
-);
+router.post("/users/register", asyncHandler(nativeRegistrationController.registerUser));
+router.get("/users/register/spotify", spotifyRegistrationController.initiateSpotifyRegistration);
+router.get("/users/register/spotify/callback", asyncHandler(spotifyRegistrationController.spotifyRegistrationCallback));
 
 router.get("/secret-login", index.login);
 router.get("/callback", index.callback);
