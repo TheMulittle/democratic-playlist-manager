@@ -1,12 +1,23 @@
 import { Component } from 'react'
-
+import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom'
 import './App.css'
 import Layout from './UI/Layout/Layout'
 import LoginPage from './pages/LoginPage/LoginPage'
+import SpotifyLoginCallback from './pages/LoginPage/SpotifyLoginCallback'
 import RegistrationPage from './pages/RegistrationPage/RegistrationPage'
-import { Redirect, Route, Switch } from 'react-router'
-import { BrowserRouter } from 'react-router-dom'
-import PlaylistManagementPage from './pages/PlaylistManagementPage/PlaylistManagementPage'
+import SpotifyRegistrationCallback from './pages/RegistrationPage/SpotifyRegistrationCallback'
+import HostPage from './pages/PlaylistManagementPage/PlaylistManagementPage'
+import InviteePage from './pages/InviteePage/InviteePage'
+import { isAuthenticated } from './auth'
+
+const ProtectedRoute = ({ component: Component, ...rest }) => (
+  <Route
+    {...rest}
+    render={(props) =>
+      isAuthenticated() ? <Component {...props} /> : <Redirect to="/login" />
+    }
+  />
+)
 
 class App extends Component {
   render() {
@@ -15,9 +26,12 @@ class App extends Component {
         <BrowserRouter>
           <Layout>
             <Switch>
-              <Route from="/playlist" component={PlaylistManagementPage} />
-              <Route from="/register" component={RegistrationPage} />
-              <Route from="/login" component={LoginPage} />
+              <Route path="/login/spotify/callback" component={SpotifyLoginCallback} />
+              <Route path="/login" component={LoginPage} />
+              <Route path="/register/spotify/callback" component={SpotifyRegistrationCallback} />
+              <Route path="/register" component={RegistrationPage} />
+              <ProtectedRoute path="/host" component={HostPage} />
+              <ProtectedRoute path="/invitee" component={InviteePage} />
               <Redirect to="/login" />
             </Switch>
           </Layout>

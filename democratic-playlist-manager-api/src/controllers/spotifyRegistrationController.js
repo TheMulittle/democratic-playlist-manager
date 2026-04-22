@@ -14,9 +14,10 @@ async function spotifyRegistrationCallback(req, res) {
   }
 
   try {
-    const sessionToken = await spotifyRegistrationService.registerViaSpotify(code);
-    res.cookie("DP_RFT", sessionToken, { httpOnly: true });
-    return res.redirect(`${webAppBase}/playlist`);
+    const result = await spotifyRegistrationService.registerViaSpotify(code);
+    return res.redirect(
+      `${webAppBase}/register/spotify/callback?token=${result.token}&userType=${result.userType}`
+    );
   } catch (err) {
     const errorParam = err instanceof ConflictError ? "already_registered" : "registration_failed";
     return res.redirect(`${webAppBase}/register?error=${errorParam}`);

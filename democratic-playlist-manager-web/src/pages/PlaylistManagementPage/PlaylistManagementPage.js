@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from '../../axios'
+import { clearSession } from '../../auth'
 
 import SelectionList from '../../UI/SelectionList/SelectionList'
 import SpotifyButton from "../../UI/SpotifyButton/SpotifyButton";
@@ -8,6 +9,14 @@ const PlaylistManagementPage = (props) => {
   const [collaborativePlaylists, setCollaborativePlaylists] = useState([])
 
   const defaultImage = ''
+
+  const logoutHandler = () => {
+    axios.post(`${process.env.REACT_APP_API_BASE_URL}/users/logout`)
+      .finally(() => {
+        clearSession()
+        props.history.push('/login')
+      })
+  }
 
   useEffect(() => {
     Promise.all([
@@ -65,6 +74,7 @@ const PlaylistManagementPage = (props) => {
   return (
     <div>
       <SpotifyButton children={'Reordenar'} clicked={forceReorderClickHandler}/>
+      <SpotifyButton clicked={logoutHandler}>Logout</SpotifyButton>
       <SelectionList items={collaborativePlaylists} playlistClicked={playlistClickedHandler} />
     </div>
   )

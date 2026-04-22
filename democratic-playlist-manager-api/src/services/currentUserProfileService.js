@@ -1,8 +1,10 @@
-const spotifyAuthenticationService = require("./spotifyAuthenticationService");
+const SpotifyClientWrapper = require("../clients/SpotifyClientWrapper");
+const sessions = require("../repositories/sessions");
 
-async function getPlaylists(options, refreshToken) {
-  const spotifyApi =
-    await spotifyAuthenticationService.provideAuthenticatedClient(refreshToken);
+async function getPlaylists(options, sessionToken) {
+  const session = sessions.get(sessionToken);
+  const spotifyApi = new SpotifyClientWrapper({ accessToken: session.spotifyAccessToken });
+
   let userPlaylists = spotifyApi.retrieveUserPlaylists();
 
   if (options.mine === true || options.mine === false) {
@@ -21,6 +23,4 @@ async function getPlaylists(options, refreshToken) {
   return { playlists: await userPlaylists };
 }
 
-module.exports = {
-  getPlaylists,
-};
+module.exports = { getPlaylists };

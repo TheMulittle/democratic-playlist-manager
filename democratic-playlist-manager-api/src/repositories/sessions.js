@@ -8,4 +8,8 @@ function get(token) {
   return sessions[token];
 }
 
-module.exports = { add, get };
+function remove(token) {
+  delete sessions[token];
+}
+
+module.exports = { add, get, remove };

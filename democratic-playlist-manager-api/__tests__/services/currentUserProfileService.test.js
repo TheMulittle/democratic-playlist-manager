@@ -5,13 +5,8 @@ const currentUserProfileFixture = require("../../__fixtures__/currentUserProfile
 jest.mock("../../src/clients/SpotifyClientWrapper");
 const MockSpotifyClientWrapper = require("../../src/clients/SpotifyClientWrapper");
 
-const mockProvideAuthentication = jest
-  .fn()
-  .mockImplementation(() => new MockSpotifyClientWrapper());
-const mockSpotifyAuthenticationService = require("../../src/services/spotifyAuthenticationService.js");
-
-mockSpotifyAuthenticationService.provideAuthenticatedClient =
-  mockProvideAuthentication;
+jest.mock("../../src/repositories/sessions");
+const sessions = require("../../src/repositories/sessions");
 
 const currentUserProfileService = require("../../src/services/currentUserProfileService");
 
@@ -75,6 +70,7 @@ describe('getPlaylists should return the playlists filtered by the content of "o
   ]);
 
   beforeAll(() => {
+    sessions.get.mockReturnValue({ spotifyAccessToken: "mock-access-token" });
     const currentUserProfile =
       currentUserProfileFixture.generateCurrentUserProfile({ userId: "U1" });
     const mocks = {

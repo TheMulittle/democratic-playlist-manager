@@ -31,16 +31,17 @@ describe("AC.1: An unauthenticated user can register using a third party service
     thirdPartyUsers.get.mockReturnValue(undefined);
 
     // Act
-    const sessionToken = await spotifyRegistrationService.registerViaSpotify("auth-code");
+    const result = await spotifyRegistrationService.registerViaSpotify("auth-code");
 
     // Assert
     expect(thirdPartyUsers.add).toHaveBeenCalledWith(
       "spotify:spotify-user-123",
       expect.objectContaining({ spotifyId: MOCK_PROFILE.id, email: MOCK_PROFILE.email })
     );
-    expect(sessions.add).toHaveBeenCalledWith(sessionToken, expect.objectContaining({ spotifyId: MOCK_PROFILE.id }));
-    expect(typeof sessionToken).toBe("string");
-    expect(sessionToken.length).toBeGreaterThan(0);
+    expect(sessions.add).toHaveBeenCalledWith(result.token, expect.objectContaining({ spotifyId: MOCK_PROFILE.id }));
+    expect(result.userType).toBe("host");
+    expect(typeof result.token).toBe("string");
+    expect(result.token.length).toBeGreaterThan(0);
   });
 });
 

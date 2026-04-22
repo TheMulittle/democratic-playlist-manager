@@ -40,9 +40,9 @@ async function registerViaSpotify(code) {
   thirdPartyUsers.add(providerKey, user);
 
   const sessionToken = nanoid();
-  sessions.add(sessionToken, user);
+  sessions.add(sessionToken, { ...user, userType: "host", spotifyAccessToken: accessData.access_token, spotifyRefreshToken: accessData.refresh_token });
 
-  return sessionToken;
+  return { token: sessionToken, userType: "host" };
 }
 
 module.exports = { createAuthorizeURL, registerViaSpotify };

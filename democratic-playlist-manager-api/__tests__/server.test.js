@@ -12,9 +12,15 @@ const playlistManagementService = require("../src/services/playlistManagementSer
 jest.mock("../src/services/spotifyAuthenticationService.js");
 const spotifyAuthenticationService = require("../src/services/spotifyAuthenticationService");
 
+jest.mock("../src/repositories/sessions");
+const sessions = require("../src/repositories/sessions");
+
 const ResourceDoesNotBelongToEntityError = require("../src/errors/ResourceDoesNotBelongToEntityError");
 const ResourceNotFoundError = require("../src/errors/ResourceNotFoundError");
 const readFixtureJson = require("../__fixtures__/utils/readFixtureJson");
+
+const AUTH_TOKEN = "test-session-token";
+const AUTH_HEADER = `Bearer ${AUTH_TOKEN}`;
 
 beforeEach(() => {
   jest.useFakeTimers();
@@ -80,9 +86,7 @@ describe("Voteskip endpoints", () => {
 
 describe("Playlist ordering management endpoints", () => {
   beforeAll(() => {
-    jest
-      .spyOn(spotifyAuthenticationService, "isUserAuthenticated")
-      .mockReturnValue(true);
+    sessions.get.mockReturnValue({ userType: "host" });
   });
 
   afterEach(() => {
@@ -96,7 +100,7 @@ describe("Playlist ordering management endpoints", () => {
 
     const res = await request(server)
       .post("/playlist/P1")
-      .set("Cookie", ["DP_RFT=RT1"])
+      .set("Authorization", AUTH_HEADER)
       .send();
 
     expect(res.statusCode).toBe(400);
@@ -110,7 +114,7 @@ describe("Playlist ordering management endpoints", () => {
 
     const res = await request(server)
       .post("/playlist/P1")
-      .set("Cookie", ["DP_RFT=RT1"])
+      .set("Authorization", AUTH_HEADER)
       .send();
 
     expect(res.statusCode).toBe(201);
@@ -123,7 +127,7 @@ describe("Playlist ordering management endpoints", () => {
   it("When a client requests to remove a playlist that they own, an status code 200 should be returned", async () => {
     const res = await request(server)
       .delete("/playlist/P1")
-      .set("Cookie", ["DP_RFT=RT1"])
+      .set("Authorization", AUTH_HEADER)
       .send();
 
     expect(res.statusCode).toBe(200);
@@ -137,7 +141,7 @@ describe("Playlist ordering management endpoints", () => {
 
     const res = await request(server)
       .delete("/playlist/P1")
-      .set("Cookie", ["DP_RFT=RT1"])
+      .set("Authorization", AUTH_HEADER)
       .send();
 
     expect(res.statusCode).toBe(400);
@@ -155,7 +159,7 @@ describe("Playlist ordering management endpoints", () => {
 
     const res = await request(server)
       .delete("/playlist/P1")
-      .set("Cookie", ["DP_RFT=RT1"])
+      .set("Authorization", AUTH_HEADER)
       .send();
 
     expect(res.statusCode).toBe(404);
@@ -173,7 +177,7 @@ describe("Playlist ordering management endpoints", () => {
 
     const res = await request(server)
       .delete("/playlist/P1")
-      .set("Cookie", ["DP_RFT=RT1"])
+      .set("Authorization", AUTH_HEADER)
       .send();
 
     expect(res.statusCode).toBe(404);
@@ -188,7 +192,7 @@ describe("Playlist ordering management endpoints", () => {
 
     const res = await request(server)
       .get("/playlist")
-      .set("Cookie", ["DP_RFT=RT1"])
+      .set("Authorization", AUTH_HEADER)
       .send();
 
     expect(res.statusCode).toBe(200);
@@ -202,9 +206,7 @@ describe("Playlist ordering management endpoints", () => {
 
 describe("Trigger endpoints", () => {
   beforeAll(() => {
-    jest
-      .spyOn(spotifyAuthenticationService, "isUserAuthenticated")
-      .mockReturnValue(true);
+    sessions.get.mockReturnValue({ userType: "host" });
   });
 
   afterEach(() => {
@@ -220,13 +222,13 @@ describe("Trigger endpoints", () => {
     // Act
     const res = await request(server)
       .post("/trigger-reorder")
-      .set("Cookie", ["DP_RFT=RT1"])
+      .set("Authorization", AUTH_HEADER)
       .send();
 
     // Asssert
     expect(
       playlistManagementService.getManagedPlaylistsIds
-    ).toHaveBeenCalledWith("RT1");
+    ).toHaveBeenCalledWith(AUTH_TOKEN);
     expect(playlistManagementService.reorderPlaylist).toHaveBeenCalledTimes(0);
     expect(res.statusCode).toBe(400);
   });
@@ -240,13 +242,13 @@ describe("Trigger endpoints", () => {
     // Act
     const res = await request(server)
       .post("/trigger-reorder")
-      .set("Cookie", ["DP_RFT=RT1"])
+      .set("Authorization", AUTH_HEADER)
       .send();
 
     // Asssert
     expect(
       playlistManagementService.getManagedPlaylistsIds
-    ).toHaveBeenCalledWith("RT1");
+    ).toHaveBeenCalledWith(AUTH_TOKEN);
     expect(playlistManagementService.reorderPlaylist).toHaveBeenCalledTimes(2);
     expect(res.statusCode).toBe(200);
   });
@@ -254,9 +256,7 @@ describe("Trigger endpoints", () => {
 
 describe("Spotify playlist endpoints", () => {
   beforeAll(() => {
-    jest
-      .spyOn(spotifyAuthenticationService, "isUserAuthenticated")
-      .mockReturnValue(true);
+    sessions.get.mockReturnValue({ userType: "host" });
   });
 
   afterEach(() => {
@@ -269,12 +269,12 @@ describe("Spotify playlist endpoints", () => {
 
     const res = await request(server)
       .get("/me/playlist/?collaborative=true&mine=true")
-      .set("Cookie", ["DP_RFT=RT1"])
+      .set("Authorization", AUTH_HEADER)
       .send();
 
     expect(currentUserProfileService.getPlaylists).toHaveBeenCalledWith(
       { collaborative: true, mine: true },
-      "RT1"
+      AUTH_TOKEN
     );
     expect(res.statusCode).toBe(200);
     expect(res.body).toStrictEqual(USER_PLAYLISTS);
@@ -286,12 +286,12 @@ describe("Spotify playlist endpoints", () => {
 
     const res = await request(server)
       .get("/me/playlist/")
-      .set("Cookie", ["DP_RFT=RT1"])
+      .set("Authorization", AUTH_HEADER)
       .send();
 
     expect(currentUserProfileService.getPlaylists).toHaveBeenCalledWith(
       {},
-      "RT1"
+      AUTH_TOKEN
     );
     expect(res.statusCode).toBe(200);
     expect(res.body).toStrictEqual(USER_PLAYLISTS);
@@ -300,9 +300,7 @@ describe("Spotify playlist endpoints", () => {
 
 describe("Non authenticated users are not allowed to call protected endpoints", () => {
   beforeAll(() => {
-    jest
-      .spyOn(spotifyAuthenticationService, "isUserAuthenticated")
-      .mockReturnValue(false);
+    sessions.get.mockReturnValue(undefined);
   });
 
   afterEach(() => {
@@ -313,7 +311,6 @@ describe("Non authenticated users are not allowed to call protected endpoints", 
   it("When a client performs a post request to /playlist without being authenticated, an status code 401 should be returned", async () => {
     const res = await request(server).get("/playlist").send();
 
-    expect(spotifyAuthenticationService.isUserAuthenticated).toBeCalledTimes(1);
     expect(res.statusCode).toBe(401);
     expect(res.body.errorMessage).toBe(
       "The user is not authenticated. Please ensure to authenticate before performing this action"
@@ -323,7 +320,6 @@ describe("Non authenticated users are not allowed to call protected endpoints", 
   it("When a client performs a post request to /trigger-reorder without being authenticated, an status code 401 should be returned", async () => {
     const res = await request(server).post("/trigger-reorder").send();
 
-    expect(spotifyAuthenticationService.isUserAuthenticated).toBeCalledTimes(1);
     expect(res.statusCode).toBe(401);
     expect(res.body.errorMessage).toBe(
       "The user is not authenticated. Please ensure to authenticate before performing this action"
@@ -333,7 +329,6 @@ describe("Non authenticated users are not allowed to call protected endpoints", 
   it("When a client performs a delete request to /playlist without being authenticated, an status code 401 should be returned", async () => {
     const res = await request(server).delete("/playlist/P1").send();
 
-    expect(spotifyAuthenticationService.isUserAuthenticated).toBeCalledTimes(1);
     expect(res.statusCode).toBe(401);
     expect(res.body.errorMessage).toBe(
       "The user is not authenticated. Please ensure to authenticate before performing this action"

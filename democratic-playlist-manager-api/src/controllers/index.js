@@ -39,9 +39,10 @@ function voteskip(req, res) {
 
 // TODO cookie as first argument
 async function addPlaylist(req, res) {
+  const token = req.headers.authorization?.split(" ")[1];
   await spotifyPlaylistManagementService.managePlaylist(
     req.params.playlistId,
-    req.cookies.DP_RFT
+    token
   );
   res.statusCode = 201;
   res.json({ message: "Playlist Added" });
@@ -49,9 +50,10 @@ async function addPlaylist(req, res) {
 }
 
 async function removePlaylist(req, res) {
+  const token = req.headers.authorization?.split(" ")[1];
   await spotifyPlaylistManagementService.unmanagePlaylist(
     req.params.playlistId,
-    req.cookies.DP_RFT
+    token
   );
   res.statusCode = 200;
   res.json({ message: "Playlist Removed" });
@@ -59,24 +61,27 @@ async function removePlaylist(req, res) {
 }
 
 function getManagedPlaylistsIds(req, res) {
+  const token = req.headers.authorization?.split(" ")[1];
   const managedPlaylists =
-    spotifyPlaylistManagementService.getManagedPlaylistsIds(req.cookies.DP_RFT);
+    spotifyPlaylistManagementService.getManagedPlaylistsIds(token);
   res.statusCode = 200;
   res.json(managedPlaylists);
 }
 
 async function getMyPlaylists(req, res) {
+  const token = req.headers.authorization?.split(" ")[1];
   const userPlaylists = await currentUserProfileService.getPlaylists(
     req.query,
-    req.cookies.DP_RFT
+    token
   );
   res.statusCode = 200;
   res.json(userPlaylists);
 }
 
 function triggerReorder(req, res) {
+  const token = req.headers.authorization?.split(" ")[1];
   const managedPlaylists =
-    spotifyPlaylistManagementService.getManagedPlaylistsIds(req.cookies.DP_RFT);
+    spotifyPlaylistManagementService.getManagedPlaylistsIds(token);
   console.log(`managedPlaylists ${JSON.stringify(managedPlaylists)}`);
   const { playlistIds } = managedPlaylists;
   if (playlistIds.length > 0) {
@@ -84,10 +89,7 @@ function triggerReorder(req, res) {
     res.json({ message: "Reorder triggered" });
     playlistIds.forEach((playlistId) => {
       console.log(`reordering ${playlistId}`);
-      spotifyPlaylistManagementService.reorderPlaylist(
-        playlistId,
-        req.cookies.DP_RFT
-      );
+      spotifyPlaylistManagementService.reorderPlaylist(playlistId, token);
     });
   }
 
