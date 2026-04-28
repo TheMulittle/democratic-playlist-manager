@@ -55,3 +55,5 @@ Note 2: An email is said to be valid if it follows the format [string]@[string].
 ```
 
 there is no mention to what modules will be touched. The developer must direct the AI agent that the `api` and the `web` sub-projects will be worked on. What changes will be exactly required is part of AI's job with support and review from the developer
+
+Usually the AI agent will be handled a ticket link at first to GitHub. The agent must be aware of the milestone context assigned to this ticket as well as its content
