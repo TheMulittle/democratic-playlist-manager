@@ -6,6 +6,7 @@ const nativeRegistrationController = require("../controllers/nativeRegistrationC
 const spotifyRegistrationController = require("../controllers/spotifyRegistrationController");
 const nativeLoginController = require("../controllers/nativeLoginController");
 const spotifyLoginController = require("../controllers/spotifyLoginController");
+const invitationController = require("../controllers/invitationController");
 const sessions = require("../repositories/sessions");
 
 const router = express.Router();
@@ -32,6 +33,11 @@ router.get("/playlist", ensureAuthentication, asyncHandler(index.getManagedPlayl
 router.delete("/playlist/:playlistId", ensureAuthentication, asyncHandler(index.removePlaylist));
 router.get("/me/playlist", ensureAuthentication, asyncHandler(index.getMyPlaylists));
 router.post("/trigger-reorder", ensureAuthentication, asyncHandler(index.triggerReorder));
+
+// Invitations
+router.post("/invitations", ensureAuthentication, asyncHandler(invitationController.createInvitation));
+router.get("/invitations/:playlistId/:inviteToken", asyncHandler(invitationController.getInvitation));
+router.post("/invitations/:playlistId/:inviteToken/accept", ensureAuthentication, asyncHandler(invitationController.acceptInvitation));
 
 function ensureAuthentication(req, res, next) {
   const token = req.headers.authorization?.split(" ")[1];

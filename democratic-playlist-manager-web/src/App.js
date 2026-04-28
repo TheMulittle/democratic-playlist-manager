@@ -8,6 +8,7 @@ import RegistrationPage from './pages/RegistrationPage/RegistrationPage'
 import SpotifyRegistrationCallback from './pages/RegistrationPage/SpotifyRegistrationCallback'
 import HostPage from './pages/PlaylistManagementPage/PlaylistManagementPage'
 import InviteePage from './pages/InviteePage/InviteePage'
+import InvitePage from './pages/InvitePage/InvitePage'
 import { isAuthenticated } from './auth'
 
 const ProtectedRoute = ({ component: Component, ...rest }) => (
@@ -32,6 +33,7 @@ class App extends Component {
               <Route path="/register" component={RegistrationPage} />
               <ProtectedRoute path="/host" component={HostPage} />
               <ProtectedRoute path="/invitee" component={InviteePage} />
+              <Route path="/invite/:playlistId/:inviteToken" component={InvitePage} />
               <Redirect to="/login" />
             </Switch>
           </Layout>

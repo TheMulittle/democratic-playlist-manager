@@ -23,7 +23,8 @@ const LoginPage = ({ location, history }) => {
       .post(`${process.env.REACT_APP_API_BASE_URL}/users/login`, { email, password })
       .then((res) => {
         saveSession(res.data.token, res.data.userType)
-        history.push(res.data.userType === 'host' ? '/host' : '/invitee')
+        const redirect = params.get('redirect')
+        history.push(redirect ?? (res.data.userType === 'host' ? '/host' : '/invitee'))
       })
       .catch((err) => {
         setMessage(err.response?.data?.errorMessage ?? 'An unexpected error occurred')

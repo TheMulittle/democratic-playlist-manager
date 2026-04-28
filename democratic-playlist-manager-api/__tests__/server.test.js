@@ -12,6 +12,9 @@ const playlistManagementService = require("../src/services/playlistManagementSer
 jest.mock("../src/services/spotifyAuthenticationService.js");
 const spotifyAuthenticationService = require("../src/services/spotifyAuthenticationService");
 
+jest.mock("../src/services/invitationService");
+const invitationService = require("../src/services/invitationService");
+
 jest.mock("../src/repositories/sessions");
 const sessions = require("../src/repositories/sessions");
 
@@ -333,6 +336,101 @@ describe("Non authenticated users are not allowed to call protected endpoints", 
     expect(res.body.errorMessage).toBe(
       "The user is not authenticated. Please ensure to authenticate before performing this action"
     );
+  });
+});
+
+describe("Invitation endpoints", () => {
+  beforeEach(() => {
+    sessions.get.mockReturnValue({ userType: "host" });
+  });
+
+  it("A host can create an invitation link for a managed playlist, returning 201", async () => {
+    invitationService.createInvitation.mockReturnValue({
+      inviteToken: "tok123",
+      playlistId: "P1",
+    });
+
+    const res = await request(server)
+      .post("/invitations")
+      .set("Authorization", AUTH_HEADER)
+      .send({ playlistId: "P1", playlistName: "My Playlist" });
+
+    expect(invitationService.createInvitation).toHaveBeenCalledWith("P1", "My Playlist", AUTH_TOKEN);
+    expect(res.statusCode).toBe(201);
+    expect(res.body.inviteLink).toContain("/invite/P1/tok123");
+  });
+
+  it("A host cannot create an invitation for an unmanaged or foreign playlist, returning 400", async () => {
+    invitationService.createInvitation.mockImplementation(() => {
+      throw new ResourceDoesNotBelongToEntityError("P1", "U1");
+    });
+
+    const res = await request(server)
+      .post("/invitations")
+      .set("Authorization", AUTH_HEADER)
+      .send({ playlistId: "P1", playlistName: "My Playlist" });
+
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("An invitee can retrieve invitation details with a valid token and playlistId, returning 200", async () => {
+    invitationService.getInvitation.mockReturnValue({
+      playlistId: "P1",
+      playlistName: "My Playlist",
+    });
+
+    const res = await request(server)
+      .get("/invitations/P1/tok123")
+      .send();
+
+    expect(invitationService.getInvitation).toHaveBeenCalledWith("tok123", "P1");
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual({ playlistId: "P1", playlistName: "My Playlist" });
+  });
+
+  it("An invitee gets 404 when the invitation token or playlistId is invalid", async () => {
+    invitationService.getInvitation.mockImplementation(() => {
+      throw new ResourceNotFoundError("Invitation not found");
+    });
+
+    const res = await request(server)
+      .get("/invitations/P1/bad-token")
+      .send();
+
+    expect(res.statusCode).toBe(404);
+  });
+
+  it("An unauthenticated user cannot create an invitation, returning 401", async () => {
+    sessions.get.mockReturnValue(undefined);
+
+    const res = await request(server)
+      .post("/invitations")
+      .send({ playlistId: "P1", playlistName: "My Playlist" });
+
+    expect(res.statusCode).toBe(401);
+  });
+
+  it("An authenticated invitee can accept an invitation, returning 200", async () => {
+    invitationService.acceptInvitation.mockReturnValue(undefined);
+
+    const res = await request(server)
+      .post("/invitations/P1/tok123/accept")
+      .set("Authorization", AUTH_HEADER)
+      .send();
+
+    expect(invitationService.acceptInvitation).toHaveBeenCalledWith("tok123", "P1", AUTH_TOKEN);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.playlistId).toBe("P1");
+  });
+
+  it("An unauthenticated user cannot accept an invitation, returning 401", async () => {
+    sessions.get.mockReturnValue(undefined);
+
+    const res = await request(server)
+      .post("/invitations/P1/tok123/accept")
+      .send();
+
+    expect(res.statusCode).toBe(401);
   });
 });
 
