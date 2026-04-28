@@ -29,7 +29,7 @@ const PlaylistManagementPage = (props) => {
           return {
             id: playlist.id,
             name: playlist.name,
-            img: playlist.images[0]?.url ?? defaultImage,
+            img: playlist.images?.[0]?.url ?? defaultImage,
             selected: false,
           }
         })

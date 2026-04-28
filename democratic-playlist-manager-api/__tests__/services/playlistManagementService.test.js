@@ -14,13 +14,9 @@ const mockPlaylistMovementCalculator = require("../../src/services/playlistMovem
 jest.mock("../../src/clients/SpotifyClientWrapper");
 const MockSpotifyClientWrapper = require("../../src/clients/SpotifyClientWrapper");
 
-const mockProvideAuthentication = jest
-  .fn()
-  .mockImplementation(() => new MockSpotifyClientWrapper());
-const mockSpotifyAuthenticationService = require("../../src/services/spotifyAuthenticationService.js");
-
-mockSpotifyAuthenticationService.provideAuthenticatedClient =
-  mockProvideAuthentication;
+jest.mock("../../src/repositories/sessions");
+const mockSessions = require("../../src/repositories/sessions");
+mockSessions.get.mockReturnValue({ spotifyAccessToken: "mock-access-token" });
 
 jest.mock("../../src/repositories/managedPlaylists.js");
 const mockManagedPlaylist = require("../../src/repositories/managedPlaylists.js");

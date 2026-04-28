@@ -22,7 +22,7 @@ class SpotifyClientWrapper {
   }
 
   createAuthorizeURL(scopes, state) {
-    return this.spotifyApi.createAuthorizeURL(scopes, state);
+    return this.spotifyApi.createAuthorizeURL(scopes, state, true);
   }
 
   async retrievePlaylistTracks(playlistId) {

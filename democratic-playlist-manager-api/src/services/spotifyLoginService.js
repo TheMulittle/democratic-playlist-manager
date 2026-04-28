@@ -10,7 +10,15 @@ const credentials = {
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
 };
 
-const scopes = ["user-read-private", "user-read-email"];
+const scopes = [
+  "user-read-private",
+  "user-read-email",
+  "playlist-read-private",
+  "playlist-read-collaborative",
+  "playlist-modify-public",
+  "playlist-modify-private",
+  "user-read-playback-state",
+];
 
 function createAuthorizeURL() {
   const client = new SpotifyClientWrapper(credentials);
