@@ -41,6 +41,8 @@ router.get("/invitations/:playlistId/:inviteToken", asyncHandler(invitationContr
 router.post("/invitations/:playlistId/:inviteToken/accept", ensureAuthentication, asyncHandler(invitationController.acceptInvitation));
 router.get("/me/invitee-playlists", ensureAuthentication, asyncHandler(inviteePlaylistController.getAssignedPlaylists));
 router.get("/me/invitee-playlists/:playlistId/tracks", ensureAuthentication, asyncHandler(inviteePlaylistController.getPlaylistTracks));
+router.get("/me/invitee-playlists/:playlistId/search", ensureAuthentication, asyncHandler(inviteePlaylistController.searchTracks));
+router.post("/me/invitee-playlists/:playlistId/tracks", ensureAuthentication, asyncHandler(inviteePlaylistController.addTrack));
 
 function ensureAuthentication(req, res, next) {
   const token = req.headers.authorization?.split(" ")[1];

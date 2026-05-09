@@ -131,6 +131,25 @@ class SpotifyClientWrapper {
     }
   }
 
+  searchTracks(query) {
+    return this.spotifyApi
+      .searchTracks(query, { limit: 10 })
+      .then((data) => data.body?.tracks?.items ?? [])
+      .catch((err) => {
+        console.error(`Error while searching tracks!\nError:${err}`);
+        return [];
+      });
+  }
+
+  addTrackToPlaylist(playlistId, trackUri) {
+    return this.spotifyApi
+      .addTracksToPlaylist(playlistId, [trackUri])
+      .then((data) => data.body)
+      .catch((err) => {
+        console.error(`Error while adding track to playlist!\nError:${err}`);
+      });
+  }
+
   refreshToken() {
     return this.spotifyApi
       .refreshAccessToken()

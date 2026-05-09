@@ -4,6 +4,7 @@ const SpotifyClientWrapper = require("../clients/SpotifyClientWrapper");
 const sessions = require("../repositories/sessions");
 const playlistOrderingService = require("./playlistOrderingService");
 const playlistMovementCalculator = require("./playlistMovementCalculator");
+const inviteeTrackOwnership = require("../repositories/inviteeTrackOwnership");
 
 const ResourceDoesNotBelongToEntityError = require("../errors/ResourceDoesNotBelongToEntityError");
 const ResourceNotFoundError = require("../errors/ResourceNotFoundError");
@@ -31,17 +32,18 @@ async function reorderPlaylistOnSpotify(playlistId, sessionToken) {
   ]).catch((err) => {
     throw err;
   });
-  const currentTrack =
-    currentPlaylistTracks.find(
-      (trackInfo) => trackInfo.track.id === currentTrackId
-    ) ?? {};
+  const mappedTracks = currentPlaylistTracks.map((t) => {
+    const owner = inviteeTrackOwnership.getOwner(playlistId, t.track.id);
+    return owner ? { ...t, added_by: { id: owner } } : t;
+  });
+  const currentTrack = mappedTracks.find((t) => t.track.id === currentTrackId) ?? {};
 
   const reorderedPlaylistTracks = playlistOrderingService.definePlaylistTracksOrder(
-    currentPlaylistTracks,
+    mappedTracks,
     currentTrack
   );
   const movements = playlistMovementCalculator.getPlaylistReorderMovements(
-    currentPlaylistTracks,
+    mappedTracks,
     reorderedPlaylistTracks
   );
 

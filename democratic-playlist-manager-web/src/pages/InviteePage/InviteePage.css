@@ -50,6 +50,83 @@
   margin: 0 0 16px 0;
 }
 
+.search-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.search-bar input {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 500px;
+  border: none;
+  background-color: #2a2a2a;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+}
+
+.search-bar input::placeholder {
+  color: #b3b3b3;
+}
+
+.search-bar button {
+  padding: 10px 20px;
+  border-radius: 500px;
+  border: none;
+  background-color: #1db954;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.search-results {
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 16px;
+}
+
+.search-result-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-radius: 4px;
+}
+
+.search-result-row:hover {
+  background-color: rgba(255,255,255,0.07);
+}
+
+.search-result-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.add-btn {
+  background: none;
+  border: 1px solid #1db954;
+  color: #1db954;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  font-size: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.add-btn:hover {
+  background-color: #1db954;
+  color: #000;
+}
+
 @media (max-width: 600px) {
   .InviteeContent {
     flex-direction: column;

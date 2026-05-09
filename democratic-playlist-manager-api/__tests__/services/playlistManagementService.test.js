@@ -21,6 +21,9 @@ mockSessions.get.mockReturnValue({ spotifyAccessToken: "mock-access-token" });
 jest.mock("../../src/repositories/managedPlaylists.js");
 const mockManagedPlaylist = require("../../src/repositories/managedPlaylists.js");
 
+jest.mock("../../src/repositories/inviteeTrackOwnership");
+const mockInviteeTrackOwnership = require("../../src/repositories/inviteeTrackOwnership");
+
 const playlistItemsFixture = require("../../__fixtures__/playlistItems.fixture");
 const userPlaylistsFixture = require("../../__fixtures__/userPlaylists.fixture");
 const currentUserProfileFixture = require("../../__fixtures__/currentUserProfile.fixture");
@@ -32,6 +35,10 @@ const ResourceNotFoundError = require("../../src/errors/ResourceNotFoundError");
 function setupSpotifyClientWrapperMock(mocks) {
   MockSpotifyClientWrapper.mockImplementation(() => ({ ...mocks }));
 }
+
+beforeEach(() => {
+  mockInviteeTrackOwnership.getOwner.mockReturnValue(undefined);
+});
 
 describe("Spotify Reorder Endpoint should be called once for each calculated movement", () => {
   it("Spotify Reorder Endpoint should not be called for a playlist that leads to no movement", async () => {
@@ -174,6 +181,74 @@ describe("Spotify Reorder Endpoint should be called once for each calculated mov
       3,
       { snapshot_id: "S2" }
     );
+  });
+
+  it("When a track was added by an invitee, the reorder uses the invitee email as the owner", async () => {
+    // Arrange
+    const playlistItems = [
+      { trackId: "A1", added_byId: "host-id" },
+      { trackId: "B1", added_byId: "host-id" }, // actually added by invitee via system
+    ];
+    const playlistTracks = playlistItemsFixture.generatePlaylistItems(playlistItems);
+
+    mockInviteeTrackOwnership.getOwner.mockImplementation((playlistId, trackId) =>
+      trackId === "B1" ? "invitee@test.com" : undefined
+    );
+
+    const expectedMappedTracks = [
+      playlistTracks[0],
+      { ...playlistTracks[1], added_by: { id: "invitee@test.com" } },
+    ];
+
+    const mocks = {
+      retrievePlaylistTracks: jest.fn().mockResolvedValue(playlistTracks),
+      retrieveCurrentTrackId: jest.fn().mockResolvedValue("A1"),
+      retrievePlaylistSnapshotId: jest.fn().mockResolvedValue("S1"),
+      reorderTracksInPlaylist: jest.fn(),
+    };
+    setupSpotifyClientWrapperMock(mocks);
+
+    jest.spyOn(mockPlaylistOrderingService, "definePlaylistTracksOrder").mockReturnValue([]);
+    jest.spyOn(mockPlaylistMovementCalculator, "getPlaylistReorderMovements").mockReturnValue([]);
+
+    // Act
+    await playlistManagementService.reorderPlaylistOnSpotify("P1");
+
+    // Assert
+    expect(mockPlaylistOrderingService.definePlaylistTracksOrder)
+      .toHaveBeenCalledWith(expectedMappedTracks, expectedMappedTracks[0]);
+    expect(mockPlaylistMovementCalculator.getPlaylistReorderMovements)
+      .toHaveBeenCalledWith(expectedMappedTracks, []);
+  });
+
+  it("When a track was added natively on Spotify by a third party, the reorder uses their Spotify ID as the owner", async () => {
+    // Arrange
+    const playlistItems = [
+      { trackId: "A1", added_byId: "host-id" },
+      { trackId: "B1", added_byId: "third-party-spotify-id" }, // added directly on Spotify, not via our system
+    ];
+    const playlistTracks = playlistItemsFixture.generatePlaylistItems(playlistItems);
+
+    // No ownership record for B1 — not added through our system
+    mockInviteeTrackOwnership.getOwner.mockReturnValue(undefined);
+
+    const mocks = {
+      retrievePlaylistTracks: jest.fn().mockResolvedValue(playlistTracks),
+      retrieveCurrentTrackId: jest.fn().mockResolvedValue("A1"),
+      retrievePlaylistSnapshotId: jest.fn().mockResolvedValue("S1"),
+      reorderTracksInPlaylist: jest.fn(),
+    };
+    setupSpotifyClientWrapperMock(mocks);
+
+    jest.spyOn(mockPlaylistOrderingService, "definePlaylistTracksOrder").mockReturnValue([]);
+    jest.spyOn(mockPlaylistMovementCalculator, "getPlaylistReorderMovements").mockReturnValue([]);
+
+    // Act
+    await playlistManagementService.reorderPlaylistOnSpotify("P1");
+
+    // Assert — tracks passed unchanged, third party keeps their Spotify ID
+    expect(mockPlaylistOrderingService.definePlaylistTracksOrder)
+      .toHaveBeenCalledWith(playlistTracks, playlistTracks[0]);
   });
 
   // TODO implement this correctly

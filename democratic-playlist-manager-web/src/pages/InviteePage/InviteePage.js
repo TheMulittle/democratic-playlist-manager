@@ -9,6 +9,8 @@ import './InviteePage.css'
 const InviteePage = ({ history, location }) => {
   const [playlists, setPlaylists] = useState([])
   const [tracks, setTracks] = useState([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState([])
   const [error, setError] = useState(null)
 
   const params = new URLSearchParams(location.search)
@@ -22,9 +24,7 @@ const InviteePage = ({ history, location }) => {
           .catch(() => {})
       }
       axios.get(`${process.env.REACT_APP_API_BASE_URL}/me/invitee-playlists`)
-        .then((res) => {
-          setPlaylists(res.data.playlists.map((p) => ({ id: p.playlistId, name: p.playlistName, selected: false })))
-        })
+        .then((res) => setPlaylists(res.data.playlists.map((p) => ({ id: p.playlistId, name: p.playlistName, selected: false }))))
         .catch(() => setError('Failed to load playlists.'))
     }
     acceptAndLoad()
@@ -34,21 +34,45 @@ const InviteePage = ({ history, location }) => {
     const updated = playlists.map((p) => ({ ...p, selected: p.id === clickedId ? !p.selected : false }))
     setPlaylists(updated)
     setTracks([])
+    setSearchResults([])
+    setSearchQuery('')
 
     const isNowSelected = updated.find((p) => p.id === clickedId)?.selected
     if (isNowSelected) {
-      axios.get(`${process.env.REACT_APP_API_BASE_URL}/me/invitee-playlists/${clickedId}/tracks`)
-        .then((res) => setTracks(res.data.tracks))
-        .catch(() => setError('Failed to load tracks.'))
+      loadTracks(clickedId)
     }
+  }
+
+  const loadTracks = (pid) => {
+    axios.get(`${process.env.REACT_APP_API_BASE_URL}/me/invitee-playlists/${pid}/tracks`)
+      .then((res) => setTracks(res.data.tracks))
+      .catch(() => setError('Failed to load tracks.'))
+  }
+
+  const searchHandler = () => {
+    if (!searchQuery.trim()) return
+    const pid = playlists.find((p) => p.selected)?.id
+    if (!pid) return
+    axios.get(`${process.env.REACT_APP_API_BASE_URL}/me/invitee-playlists/${pid}/search?q=${encodeURIComponent(searchQuery)}`)
+      .then((res) => setSearchResults(res.data.tracks))
+      .catch(() => setError('Search failed.'))
+  }
+
+  const addTrackHandler = (trackUri) => {
+    const pid = playlists.find((p) => p.selected)?.id
+    if (!pid) return
+    axios.post(`${process.env.REACT_APP_API_BASE_URL}/me/invitee-playlists/${pid}/tracks`, { trackUri })
+      .then(() => {
+        setSearchResults([])
+        setSearchQuery('')
+        loadTracks(pid)
+      })
+      .catch(() => setError('Failed to add track.'))
   }
 
   const logoutHandler = () => {
     axios.post(`${process.env.REACT_APP_API_BASE_URL}/users/logout`)
-      .finally(() => {
-        clearSession()
-        history.push('/login')
-      })
+      .finally(() => { clearSession(); history.push('/login') })
   }
 
   const selectedPlaylist = playlists.find((p) => p.selected)
@@ -63,21 +87,36 @@ const InviteePage = ({ history, location }) => {
           <div className="InviteeContent">
             <div className="playlist-panel">
               {playlists.map((p) => (
-                <PlaylistRow
-                  key={p.id}
-                  name={p.name}
-                  selected={p.selected}
-                  onClick={() => playlistClickedHandler(p.id)}
-                />
+                <PlaylistRow key={p.id} name={p.name} selected={p.selected} onClick={() => playlistClickedHandler(p.id)} />
               ))}
             </div>
             {selectedPlaylist && (
               <div className="track-panel">
                 <h3>{selectedPlaylist.name}</h3>
-                {tracks.length > 0
-                  ? <TrackList tracks={tracks} />
-                  : <p style={{ color: '#b3b3b3' }}>Loading tracks...</p>
-                }
+                <div className="search-bar">
+                  <input
+                    type="text"
+                    placeholder="Search for a song..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && searchHandler()}
+                  />
+                  <button onClick={searchHandler}>Search</button>
+                </div>
+                {searchResults.length > 0 && (
+                  <div className="search-results">
+                    {searchResults.map((t) => (
+                      <div key={t.id} className="search-result-row">
+                        <div className="search-result-info">
+                          <span className="TrackName">{t.name}</span>
+                          <span className="TrackArtists">{t.artists}</span>
+                        </div>
+                        <button className="add-btn" onClick={() => addTrackHandler(t.uri)}>+</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {tracks.length > 0 && <TrackList tracks={tracks} />}
               </div>
             )}
           </div>
