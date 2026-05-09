@@ -13,7 +13,6 @@ class SpotifyClientWrapper {
       });
 
     if (data) {
-      console.log(data.body);
       return data.body;
     }
 
@@ -44,9 +43,32 @@ class SpotifyClientWrapper {
           return data.body;
         })
         .catch((err) => {
-          console.error(
-            `Error while retrieving playlist tracks!\nError:${err}`
-          );
+          console.error(`Error while retrieving playlist tracks!\nError:${err}`);
+        });
+    } while (tracksPage.total > offsetCounter);
+    return tracksInfo;
+  }
+
+  async retrievePlaylistTracksWithDetails(playlistId) {
+    let offsetCounter = 0;
+    const tracksPerPage = 100;
+    let tracksInfo = [];
+    let tracksPage;
+
+    do {
+      tracksPage = await this.spotifyApi
+        .getPlaylistTracks(playlistId, {
+          offset: offsetCounter,
+          limit: tracksPerPage,
+          fields: "items(added_by.id, track(id, name, artists(name))), total",
+        })
+        .then((data) => {
+          tracksInfo = tracksInfo.concat(data.body.items);
+          offsetCounter += tracksPerPage;
+          return data.body;
+        })
+        .catch((err) => {
+          console.error(`Error while retrieving playlist tracks with details!\nError:${err}`);
         });
     } while (tracksPage.total > offsetCounter);
     return tracksInfo;
@@ -57,9 +79,7 @@ class SpotifyClientWrapper {
       .getPlaylist(playlistId, { fields: "snapshot_id" })
       .then((data) => data.body?.snapshot_id ?? "")
       .catch((err) => {
-        console.error(
-          `Error while retrieving playlist snapshotId!\nError:${err}`
-        );
+        console.error(`Error while retrieving playlist snapshotId!\nError:${err}`);
         return "";
       });
   }
@@ -69,14 +89,13 @@ class SpotifyClientWrapper {
       .getMyCurrentPlaybackState()
       .then((data) => data.body.item?.id ?? "")
       .catch((err) => {
-        console.error(
-          `Error while getting User´s playback state!\nError:${err}`
-        );
+        console.error(`Error while getting User´s playback state!\nError:${err}`);
         return "";
       });
   }
 
   retrieveCurrentUserProfile() {
+    console.log('getMe accessToken:', this.spotifyApi.getAccessToken());
     return this.spotifyApi
       .getMe()
       .then((data) => data.body ?? {})
@@ -96,15 +115,8 @@ class SpotifyClientWrapper {
       });
   }
 
-  async reorderTracksInPlaylist(
-    playlistId,
-    positionInCurentPlaylist,
-    positionInOrderedPlaylist,
-    options
-  ) {
-    console.log(
-      `Moving ${positionInCurentPlaylist} to ${positionInOrderedPlaylist}`
-    );
+  async reorderTracksInPlaylist(playlistId, positionInCurentPlaylist, positionInOrderedPlaylist, options) {
+    console.log(`Moving ${positionInCurentPlaylist} to ${positionInOrderedPlaylist}`);
     try {
       const reply = await this.spotifyApi.reorderTracksInPlaylist(
         playlistId,
@@ -114,15 +126,8 @@ class SpotifyClientWrapper {
       );
       return reply?.body?.snapshot_id ?? "";
     } catch (err) {
-      console.error(
-        `Error while reordering Tracks in Playlists!\nError:${err}\nRetrying...`
-      );
-      await this.reorderTracksInPlaylist(
-        playlistId,
-        positionInCurentPlaylist,
-        positionInOrderedPlaylist,
-        options
-      );
+      console.error(`Error while reordering Tracks in Playlists!\nError:${err}\nRetrying...`);
+      await this.reorderTracksInPlaylist(playlistId, positionInCurentPlaylist, positionInOrderedPlaylist, options);
     }
   }
 

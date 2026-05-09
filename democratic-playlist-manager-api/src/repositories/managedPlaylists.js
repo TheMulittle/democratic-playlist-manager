@@ -27,9 +27,16 @@ function remove(refreshToken, playlistId) {
   managedPlaylists[refreshToken].delete(playlistId);
 }
 
+function getHostTokenByPlaylistId(playlistId) {
+  return Object.keys(managedPlaylists).find((token) =>
+    managedPlaylists[token]?.has(playlistId)
+  );
+}
+
 module.exports = {
   add,
   get,
   remove,
   getAllPlaylistIds,
+  getHostTokenByPlaylistId,
 };

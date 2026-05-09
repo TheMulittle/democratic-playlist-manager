@@ -8,4 +8,8 @@ function get(inviteToken) {
   return invitations[inviteToken];
 }
 
-module.exports = { add, get };
+function getByPlaylistId(playlistId) {
+  return Object.values(invitations).find((inv) => inv.playlistId === playlistId);
+}
+
+module.exports = { add, get, getByPlaylistId };

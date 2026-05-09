@@ -1,0 +1,71 @@
+.TrackList {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.TrackList-header {
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  padding: 0 16px 8px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #b3b3b3;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.Track {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  cursor: default;
+}
+
+.Track:hover {
+  background-color: rgba(255, 255, 255, 0.07);
+}
+
+.Track.Faded {
+  opacity: 0.4;
+}
+
+.Track.Current .TrackNumber {
+  color: #1db954;
+}
+
+.Track.Current .TrackName {
+  color: #1db954;
+}
+
+.TrackNumber {
+  color: #b3b3b3;
+  font-size: 14px;
+  text-align: center;
+}
+
+.TrackInfo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.TrackName {
+  color: #fff;
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.TrackArtists {
+  color: #b3b3b3;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}

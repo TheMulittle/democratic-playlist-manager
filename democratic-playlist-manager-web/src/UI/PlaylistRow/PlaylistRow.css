@@ -1,0 +1,40 @@
+.PlaylistRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  color: #b3b3b3;
+}
+
+.PlaylistRow:hover {
+  background-color: rgba(255, 255, 255, 0.07);
+  color: #fff;
+}
+
+.PlaylistRow.Selected {
+  background-color: rgba(29, 185, 84, 0.15);
+  color: #fff;
+  border-left: 3px solid #1db954;
+}
+
+.PlaylistRow-icon {
+  width: 40px;
+  height: 40px;
+  background-color: #282828;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.PlaylistRow-name {
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

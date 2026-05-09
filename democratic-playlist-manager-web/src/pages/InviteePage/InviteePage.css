@@ -1,0 +1,57 @@
+.InviteePage {
+  min-height: 100vh;
+  background-color: #121212;
+  color: #fff;
+  padding: 24px 16px;
+  box-sizing: border-box;
+  font-family: 'Circular', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.InviteePage h2 {
+  color: #fff;
+  font-size: 24px;
+  margin: 0 0 20px 0;
+}
+
+.InviteePage .empty-message {
+  color: #b3b3b3;
+  font-size: 16px;
+  margin-top: 40px;
+}
+
+.InviteePage .error {
+  color: #e74c3c;
+  font-size: 14px;
+}
+
+.InviteeContent {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 24px;
+  margin-top: 16px;
+}
+
+.InviteeContent .playlist-panel {
+  flex: 0 0 auto;
+}
+
+.InviteeContent .track-panel {
+  flex: 1;
+  background-color: #181818;
+  border-radius: 8px;
+  padding: 16px;
+  min-width: 0;
+}
+
+.InviteeContent .track-panel h3 {
+  color: #fff;
+  font-size: 18px;
+  margin: 0 0 16px 0;
+}
+
+@media (max-width: 600px) {
+  .InviteeContent {
+    flex-direction: column;
+  }
+}
