@@ -1,18 +1,13 @@
-const PersistenceError = require("../errors/PersistenceError");
+const prisma = require("../database/prismaClient");
 
-const users = {};
-
-function add(email, user) {
-  if (typeof email !== "string") {
-    throw new PersistenceError(
-      `Unable to persist a user with email different than a string. Instead it was [${typeof email}]`
-    );
-  }
-  users[email] = user;
+async function add(email, { passwordHash }) {
+  await prisma.user.create({
+    data: { email, passwordHash, userType: "invitee" },
+  });
 }
 
-function get(email) {
-  return users[email];
+async function get(email) {
+  return prisma.user.findUnique({ where: { email } });
 }
 
 module.exports = { add, get };

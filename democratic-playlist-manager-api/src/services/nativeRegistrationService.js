@@ -13,12 +13,12 @@ async function register(email, password) {
   if (!PASSWORD_REGEX.test(password)) {
     throw new ValidationError("Invalid password format");
   }
-  if (nativeUsers.get(email)) {
+  if (await nativeUsers.get(email)) {
     throw new ConflictError("Email already registered");
   }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
-  nativeUsers.add(email, { email, password: hashedPassword });
+  const passwordHash = await bcrypt.hash(password, 10);
+  await nativeUsers.add(email, { passwordHash });
 
   return { email };
 }

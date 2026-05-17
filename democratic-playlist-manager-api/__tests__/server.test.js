@@ -15,6 +15,9 @@ const spotifyAuthenticationService = require("../src/services/spotifyAuthenticat
 jest.mock("../src/services/invitationService");
 const invitationService = require("../src/services/invitationService");
 
+jest.mock("../src/database/prismaClient", () => ({
+  $queryRaw: jest.fn().mockResolvedValue([]),
+}));
 jest.mock("../src/repositories/sessions");
 const sessions = require("../src/repositories/sessions");
 
@@ -89,7 +92,7 @@ describe("Voteskip endpoints", () => {
 
 describe("Playlist ordering management endpoints", () => {
   beforeAll(() => {
-    sessions.get.mockReturnValue({ userType: "host" });
+    sessions.get.mockResolvedValue({ userType: "host" });
   });
 
   afterEach(() => {
@@ -97,9 +100,7 @@ describe("Playlist ordering management endpoints", () => {
   });
 
   it("When a client requests to add a playlist that they do not own, an status code 400 should be returned", async () => {
-    playlistManagementService.managePlaylist = jest.fn(() => {
-      throw new ResourceDoesNotBelongToEntityError("P1", "U1");
-    });
+    playlistManagementService.managePlaylist = jest.fn().mockRejectedValue(new ResourceDoesNotBelongToEntityError("P1", "U1"));
 
     const res = await request(server)
       .post("/playlist/P1")
@@ -113,7 +114,7 @@ describe("Playlist ordering management endpoints", () => {
   });
 
   it("When a client requests to add a playlist that they own for the first time, an status code 201 should be returned", async () => {
-    playlistManagementService.managePlaylist = jest.fn(() => true);
+    playlistManagementService.managePlaylist = jest.fn().mockResolvedValue(true);
 
     const res = await request(server)
       .post("/playlist/P1")
@@ -138,9 +139,7 @@ describe("Playlist ordering management endpoints", () => {
   });
 
   it("When a client requests to remove a playlist that they do not own, an status code 400 should be returned", async () => {
-    playlistManagementService.unmanagePlaylist = jest.fn(() => {
-      throw new ResourceDoesNotBelongToEntityError("P1", "U1");
-    });
+    playlistManagementService.unmanagePlaylist = jest.fn().mockRejectedValue(new ResourceDoesNotBelongToEntityError("P1", "U1"));
 
     const res = await request(server)
       .delete("/playlist/P1")
@@ -154,11 +153,7 @@ describe("Playlist ordering management endpoints", () => {
   });
 
   it("When a client requests to remove a playlist that they own, but that is not registred yet, an status code 404 should be returned", async () => {
-    playlistManagementService.unmanagePlaylist = jest.fn(() => {
-      throw new ResourceNotFoundError(
-        "The given playlist [P1] was never added"
-      );
-    });
+    playlistManagementService.unmanagePlaylist = jest.fn().mockRejectedValue(new ResourceNotFoundError("The given playlist [P1] was never added"));
 
     const res = await request(server)
       .delete("/playlist/P1")
@@ -172,11 +167,7 @@ describe("Playlist ordering management endpoints", () => {
   });
 
   it("When a client requests to remove a playlist that they own, but that is not registred yet, an status code 404 should be returned", async () => {
-    playlistManagementService.unmanagePlaylist = jest.fn(() => {
-      throw new ResourceNotFoundError(
-        "The given playlist [P1] was never added"
-      );
-    });
+    playlistManagementService.unmanagePlaylist = jest.fn().mockRejectedValue(new ResourceNotFoundError("The given playlist [P1] was never added"));
 
     const res = await request(server)
       .delete("/playlist/P1")
@@ -191,7 +182,7 @@ describe("Playlist ordering management endpoints", () => {
 
   it("When a client requests the playlists that they have registred, status code 200 should be returned", async () => {
     const payload = { playlistIds: ["P1"] };
-    playlistManagementService.getManagedPlaylistsIds = jest.fn(() => payload);
+    playlistManagementService.getManagedPlaylistsIds = jest.fn().mockResolvedValue(payload);
 
     const res = await request(server)
       .get("/playlist")
@@ -209,7 +200,7 @@ describe("Playlist ordering management endpoints", () => {
 
 describe("Trigger endpoints", () => {
   beforeAll(() => {
-    sessions.get.mockReturnValue({ userType: "host" });
+    sessions.get.mockResolvedValue({ userType: "host" });
   });
 
   afterEach(() => {
@@ -259,7 +250,7 @@ describe("Trigger endpoints", () => {
 
 describe("Spotify playlist endpoints", () => {
   beforeAll(() => {
-    sessions.get.mockReturnValue({ userType: "host" });
+    sessions.get.mockResolvedValue({ userType: "host" });
   });
 
   afterEach(() => {
@@ -303,7 +294,7 @@ describe("Spotify playlist endpoints", () => {
 
 describe("Non authenticated users are not allowed to call protected endpoints", () => {
   beforeAll(() => {
-    sessions.get.mockReturnValue(undefined);
+    sessions.get.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -341,11 +332,11 @@ describe("Non authenticated users are not allowed to call protected endpoints", 
 
 describe("Invitation endpoints", () => {
   beforeEach(() => {
-    sessions.get.mockReturnValue({ userType: "host" });
+    sessions.get.mockResolvedValue({ userType: "host" });
   });
 
   it("A host can create an invitation link for a managed playlist, returning 201", async () => {
-    invitationService.createInvitation.mockReturnValue({
+    invitationService.createInvitation.mockResolvedValue({
       inviteToken: "tok123",
       playlistId: "P1",
     });
@@ -361,9 +352,7 @@ describe("Invitation endpoints", () => {
   });
 
   it("A host cannot create an invitation for an unmanaged or foreign playlist, returning 400", async () => {
-    invitationService.createInvitation.mockImplementation(() => {
-      throw new ResourceDoesNotBelongToEntityError("P1", "U1");
-    });
+    invitationService.createInvitation.mockRejectedValue(new ResourceDoesNotBelongToEntityError("P1", "U1"));
 
     const res = await request(server)
       .post("/invitations")
@@ -374,7 +363,7 @@ describe("Invitation endpoints", () => {
   });
 
   it("An invitee can retrieve invitation details with a valid token and playlistId, returning 200", async () => {
-    invitationService.getInvitation.mockReturnValue({
+    invitationService.getInvitation.mockResolvedValue({
       playlistId: "P1",
       playlistName: "My Playlist",
     });
@@ -389,9 +378,7 @@ describe("Invitation endpoints", () => {
   });
 
   it("An invitee gets 404 when the invitation token or playlistId is invalid", async () => {
-    invitationService.getInvitation.mockImplementation(() => {
-      throw new ResourceNotFoundError("Invitation not found");
-    });
+    invitationService.getInvitation.mockRejectedValue(new ResourceNotFoundError("Invitation not found"));
 
     const res = await request(server)
       .get("/invitations/P1/bad-token")
@@ -401,7 +388,7 @@ describe("Invitation endpoints", () => {
   });
 
   it("An unauthenticated user cannot create an invitation, returning 401", async () => {
-    sessions.get.mockReturnValue(undefined);
+    sessions.get.mockResolvedValue(undefined);
 
     const res = await request(server)
       .post("/invitations")
@@ -411,7 +398,7 @@ describe("Invitation endpoints", () => {
   });
 
   it("An authenticated invitee can accept an invitation, returning 200", async () => {
-    invitationService.acceptInvitation.mockReturnValue(undefined);
+    invitationService.acceptInvitation.mockResolvedValue(undefined);
 
     const res = await request(server)
       .post("/invitations/P1/tok123/accept")
@@ -424,7 +411,7 @@ describe("Invitation endpoints", () => {
   });
 
   it("An unauthenticated user cannot accept an invitation, returning 401", async () => {
-    sessions.get.mockReturnValue(undefined);
+    sessions.get.mockResolvedValue(undefined);
 
     const res = await request(server)
       .post("/invitations/P1/tok123/accept")

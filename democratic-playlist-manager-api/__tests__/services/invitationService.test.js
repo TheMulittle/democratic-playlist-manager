@@ -20,63 +20,68 @@ const SESSION_TOKEN = "session-token";
 const PLAYLIST_ID = "playlist-123";
 const PLAYLIST_NAME = "My Playlist";
 
-describe("invitationService - createInvitation", () => {
-  it("creates an invitation when the playlist is managed by the host", () => {
-    managedPlaylists.getAllPlaylistIds.mockReturnValue([PLAYLIST_ID]);
+beforeEach(() => {
+  invitations.add.mockResolvedValue(undefined);
+  inviteeAssignments.add.mockResolvedValue(undefined);
+});
 
-    const result = invitationService.createInvitation(PLAYLIST_ID, PLAYLIST_NAME, SESSION_TOKEN);
+describe("invitationService - createInvitation", () => {
+  it("creates an invitation when the playlist is managed by the host", async () => {
+    managedPlaylists.getAllPlaylistIds.mockResolvedValue([PLAYLIST_ID]);
+
+    const result = await invitationService.createInvitation(PLAYLIST_ID, PLAYLIST_NAME, SESSION_TOKEN);
 
     expect(invitations.add).toHaveBeenCalledWith(expect.any(String), PLAYLIST_ID, PLAYLIST_NAME);
     expect(result.inviteToken).toBeDefined();
     expect(result.playlistId).toBe(PLAYLIST_ID);
   });
 
-  it("throws ResourceDoesNotBelongToEntityError when playlist is not managed by the host", () => {
-    managedPlaylists.getAllPlaylistIds.mockReturnValue([]);
+  it("throws ResourceDoesNotBelongToEntityError when playlist is not managed by the host", async () => {
+    managedPlaylists.getAllPlaylistIds.mockResolvedValue([]);
 
-    expect(() =>
-      invitationService.createInvitation(PLAYLIST_ID, PLAYLIST_NAME, SESSION_TOKEN)
-    ).toThrow(ResourceDoesNotBelongToEntityError);
+    await expect(invitationService.createInvitation(PLAYLIST_ID, PLAYLIST_NAME, SESSION_TOKEN))
+      .rejects.toThrow(ResourceDoesNotBelongToEntityError);
   });
 });
 
 describe("invitationService - getInvitation", () => {
-  it("returns the invitation when inviteToken and playlistId match", () => {
-    invitations.get.mockReturnValue({ playlistId: PLAYLIST_ID, playlistName: PLAYLIST_NAME });
+  it("returns the invitation when inviteToken and playlistId match", async () => {
+    invitations.get.mockResolvedValue({ playlistId: PLAYLIST_ID, playlistName: PLAYLIST_NAME });
 
-    const result = invitationService.getInvitation("token-abc", PLAYLIST_ID);
+    const result = await invitationService.getInvitation("token-abc", PLAYLIST_ID);
 
     expect(result).toEqual({ playlistId: PLAYLIST_ID, playlistName: PLAYLIST_NAME });
   });
 
-  it("throws ResourceNotFoundError when inviteToken does not exist", () => {
-    invitations.get.mockReturnValue(undefined);
+  it("throws ResourceNotFoundError when inviteToken does not exist", async () => {
+    invitations.get.mockResolvedValue(undefined);
 
-    expect(() => invitationService.getInvitation("bad-token", PLAYLIST_ID)).toThrow(ResourceNotFoundError);
+    await expect(invitationService.getInvitation("bad-token", PLAYLIST_ID))
+      .rejects.toThrow(ResourceNotFoundError);
   });
 
-  it("throws ResourceNotFoundError when playlistId does not match", () => {
-    invitations.get.mockReturnValue({ playlistId: "other-playlist", playlistName: PLAYLIST_NAME });
+  it("throws ResourceNotFoundError when playlistId does not match", async () => {
+    invitations.get.mockResolvedValue({ playlistId: "other-playlist", playlistName: PLAYLIST_NAME });
 
-    expect(() => invitationService.getInvitation("token-abc", PLAYLIST_ID)).toThrow(ResourceNotFoundError);
+    await expect(invitationService.getInvitation("token-abc", PLAYLIST_ID))
+      .rejects.toThrow(ResourceNotFoundError);
   });
 });
 
 describe("invitationService - acceptInvitation", () => {
-  it("records the invitee assignment when the invitation is valid", () => {
-    invitations.get.mockReturnValue({ playlistId: PLAYLIST_ID, playlistName: PLAYLIST_NAME });
-    sessions.get.mockReturnValue({ email: "invitee@test.com" });
+  it("records the invitee assignment when the invitation is valid", async () => {
+    invitations.get.mockResolvedValue({ playlistId: PLAYLIST_ID, playlistName: PLAYLIST_NAME });
+    sessions.get.mockResolvedValue({ email: "invitee@test.com" });
 
-    invitationService.acceptInvitation("token-abc", PLAYLIST_ID, SESSION_TOKEN);
+    await invitationService.acceptInvitation("token-abc", PLAYLIST_ID, SESSION_TOKEN);
 
     expect(inviteeAssignments.add).toHaveBeenCalledWith("invitee@test.com", PLAYLIST_ID);
   });
 
-  it("throws ResourceNotFoundError when the invitation is invalid", () => {
-    invitations.get.mockReturnValue(undefined);
+  it("throws ResourceNotFoundError when the invitation is invalid", async () => {
+    invitations.get.mockResolvedValue(undefined);
 
-    expect(() =>
-      invitationService.acceptInvitation("bad-token", PLAYLIST_ID, SESSION_TOKEN)
-    ).toThrow(ResourceNotFoundError);
+    await expect(invitationService.acceptInvitation("bad-token", PLAYLIST_ID, SESSION_TOKEN))
+      .rejects.toThrow(ResourceNotFoundError);
   });
 });

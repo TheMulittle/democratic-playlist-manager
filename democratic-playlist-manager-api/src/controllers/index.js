@@ -3,8 +3,6 @@ const spotifyAuthenticationService = require("../services/spotifyAuthenticationS
 const spotifyPlaylistManagementService = require("../services/playlistManagementService");
 const currentUserProfileService = require("../services/currentUserProfileService");
 
-// TODO: Have multiple controllers
-
 function login(req, res) {
   res.redirect(spotifyAuthenticationService.createAuthorizeURL());
 }
@@ -21,7 +19,6 @@ function register(req, res) {
   res.statusCode = voteSkipService.registerDevice(req.header("deviceId"))
     ? 200
     : 201;
-
   res.send();
 }
 
@@ -33,66 +30,49 @@ function voteskip(req, res) {
     res.statusCode = 401;
     res.json({ message: "Device not registred" });
   }
-
   res.send();
 }
 
-// TODO cookie as first argument
 async function addPlaylist(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
-  await spotifyPlaylistManagementService.managePlaylist(
-    req.params.playlistId,
-    token
-  );
+  await spotifyPlaylistManagementService.managePlaylist(req.params.playlistId, token);
   res.statusCode = 201;
   res.json({ message: "Playlist Added" });
-  res.send();
 }
 
 async function removePlaylist(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
-  await spotifyPlaylistManagementService.unmanagePlaylist(
-    req.params.playlistId,
-    token
-  );
+  await spotifyPlaylistManagementService.unmanagePlaylist(req.params.playlistId, token);
   res.statusCode = 200;
   res.json({ message: "Playlist Removed" });
-  res.send();
 }
 
-function getManagedPlaylistsIds(req, res) {
+async function getManagedPlaylistsIds(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
-  const managedPlaylists =
-    spotifyPlaylistManagementService.getManagedPlaylistsIds(token);
+  const managedPlaylists = await spotifyPlaylistManagementService.getManagedPlaylistsIds(token);
   res.statusCode = 200;
   res.json(managedPlaylists);
 }
 
 async function getMyPlaylists(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
-  const userPlaylists = await currentUserProfileService.getPlaylists(
-    req.query,
-    token
-  );
+  const userPlaylists = await currentUserProfileService.getPlaylists(req.query, token);
   res.statusCode = 200;
   res.json(userPlaylists);
 }
 
-function triggerReorder(req, res) {
+async function triggerReorder(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
-  const managedPlaylists =
-    spotifyPlaylistManagementService.getManagedPlaylistsIds(token);
-  console.log(`managedPlaylists ${JSON.stringify(managedPlaylists)}`);
+  const managedPlaylists = await spotifyPlaylistManagementService.getManagedPlaylistsIds(token);
   const { playlistIds } = managedPlaylists;
   if (playlistIds.length > 0) {
     res.statusCode = 200;
     res.json({ message: "Reorder triggered" });
     playlistIds.forEach((playlistId) => {
-      console.log(`reordering ${playlistId}`);
       spotifyPlaylistManagementService.reorderPlaylist(playlistId, token);
     });
+    return;
   }
-
   res.statusCode = 400;
   res.json({ message: "No managed playlists found" });
 }

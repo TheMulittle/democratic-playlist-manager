@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource database_local {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  passwordHash String?
+  userType     UserType
+  spotifyId    String?  @unique
+  createdAt    DateTime @default(now())
+
+  sessions                Session[]
+  inviteeAssignments      InviteePlaylistAssignment[]
+  managedPlaylists        ManagedPlaylist[]
+  managedSongs            ManagedSong[]
+}
+
+model Session {
+  id                   Int      @id @default(autoincrement())
+  token                String   @unique
+  userId               Int
+  spotifyAccessToken   String?  @database_local.Text
+  spotifyRefreshToken  String?  @database_local.Text
+  createdAt            DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Invitation {
+  id           Int      @id @default(autoincrement())
+  inviteToken  String   @unique
+  playlistId   String
+  playlistName String
+  createdAt    DateTime @default(now())
+}
+
+model InviteePlaylistAssignment {
+  id         Int      @id @default(autoincrement())
+  inviteeId  Int
+  playlistId String
+  assignedAt DateTime @default(now())
+
+  invitee User @relation(fields: [inviteeId], references: [id])
+
+  @@unique([inviteeId, playlistId])
+}
+
+model ManagedPlaylist {
+  id         Int      @id @default(autoincrement())
+  playlistId String
+  hostId     Int
+  createdAt  DateTime @default(now())
+
+  host  User          @relation(fields: [hostId], references: [id])
+  songs ManagedSong[]
+
+  @@unique([playlistId, hostId])
+}
+
+model ManagedSong {
+  id                Int      @id @default(autoincrement())
+  managedPlaylistId Int
+  trackId           String
+  addedByUserId     Int
+  addedAt           DateTime @default(now())
+
+  managedPlaylist ManagedPlaylist @relation(fields: [managedPlaylistId], references: [id])
+  addedBy         User            @relation(fields: [addedByUserId], references: [id])
+
+  @@unique([managedPlaylistId, trackId])
+}
+
+enum UserType {
+  host
+  invitee
+}

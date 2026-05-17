@@ -8,9 +8,12 @@ const nativeLoginController = require("../controllers/nativeLoginController");
 const spotifyLoginController = require("../controllers/spotifyLoginController");
 const invitationController = require("../controllers/invitationController");
 const inviteePlaylistController = require("../controllers/inviteePlaylistController");
+const healthController = require("../controllers/healthController");
 const sessions = require("../repositories/sessions");
 
 const router = express.Router();
+
+router.get("/health", asyncHandler(healthController.healthCheck));
 
 // Registration
 router.post("/users/register", asyncHandler(nativeRegistrationController.registerUser));
@@ -19,7 +22,7 @@ router.get("/users/register/spotify/callback", asyncHandler(spotifyRegistrationC
 
 // Login / Logout
 router.post("/users/login", asyncHandler(nativeLoginController.login));
-router.post("/users/logout", nativeLoginController.logout);
+router.post("/users/logout", asyncHandler(nativeLoginController.logout));
 router.get("/users/login/spotify", spotifyLoginController.initiateSpotifyLogin);
 router.get("/users/login/spotify/callback", asyncHandler(spotifyLoginController.spotifyLoginCallback));
 
@@ -29,24 +32,24 @@ router.get("/callback", index.callback);
 router.get("/register", index.register);
 router.get("/voteskip", index.voteskip);
 
-router.post("/playlist/:playlistId", ensureAuthentication, asyncHandler(index.addPlaylist));
-router.get("/playlist", ensureAuthentication, asyncHandler(index.getManagedPlaylistsIds));
-router.delete("/playlist/:playlistId", ensureAuthentication, asyncHandler(index.removePlaylist));
-router.get("/me/playlist", ensureAuthentication, asyncHandler(index.getMyPlaylists));
-router.post("/trigger-reorder", ensureAuthentication, asyncHandler(index.triggerReorder));
+router.post("/playlist/:playlistId", asyncHandler(ensureAuthentication), asyncHandler(index.addPlaylist));
+router.get("/playlist", asyncHandler(ensureAuthentication), asyncHandler(index.getManagedPlaylistsIds));
+router.delete("/playlist/:playlistId", asyncHandler(ensureAuthentication), asyncHandler(index.removePlaylist));
+router.get("/me/playlist", asyncHandler(ensureAuthentication), asyncHandler(index.getMyPlaylists));
+router.post("/trigger-reorder", asyncHandler(ensureAuthentication), asyncHandler(index.triggerReorder));
 
 // Invitations
-router.post("/invitations", ensureAuthentication, asyncHandler(invitationController.createInvitation));
+router.post("/invitations", asyncHandler(ensureAuthentication), asyncHandler(invitationController.createInvitation));
 router.get("/invitations/:playlistId/:inviteToken", asyncHandler(invitationController.getInvitation));
-router.post("/invitations/:playlistId/:inviteToken/accept", ensureAuthentication, asyncHandler(invitationController.acceptInvitation));
-router.get("/me/invitee-playlists", ensureAuthentication, asyncHandler(inviteePlaylistController.getAssignedPlaylists));
-router.get("/me/invitee-playlists/:playlistId/tracks", ensureAuthentication, asyncHandler(inviteePlaylistController.getPlaylistTracks));
-router.get("/me/invitee-playlists/:playlistId/search", ensureAuthentication, asyncHandler(inviteePlaylistController.searchTracks));
-router.post("/me/invitee-playlists/:playlistId/tracks", ensureAuthentication, asyncHandler(inviteePlaylistController.addTrack));
+router.post("/invitations/:playlistId/:inviteToken/accept", asyncHandler(ensureAuthentication), asyncHandler(invitationController.acceptInvitation));
+router.get("/me/invitee-playlists", asyncHandler(ensureAuthentication), asyncHandler(inviteePlaylistController.getAssignedPlaylists));
+router.get("/me/invitee-playlists/:playlistId/tracks", asyncHandler(ensureAuthentication), asyncHandler(inviteePlaylistController.getPlaylistTracks));
+router.get("/me/invitee-playlists/:playlistId/search", asyncHandler(ensureAuthentication), asyncHandler(inviteePlaylistController.searchTracks));
+router.post("/me/invitee-playlists/:playlistId/tracks", asyncHandler(ensureAuthentication), asyncHandler(inviteePlaylistController.addTrack));
 
-function ensureAuthentication(req, res, next) {
+async function ensureAuthentication(req, res, next) {
   const token = req.headers.authorization?.split(" ")[1];
-  if (!token || !sessions.get(token)) {
+  if (!token || !(await sessions.get(token))) {
     throw new UserNotAuthenticatedError();
   }
   return next();

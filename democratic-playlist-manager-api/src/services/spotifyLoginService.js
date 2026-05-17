@@ -36,13 +36,13 @@ async function loginViaSpotify(code) {
   const profileClient = new SpotifyClientWrapper({ accessToken: accessData.access_token });
   const profile = await profileClient.retrieveCurrentUserProfile();
 
-  const user = thirdPartyUsers.get(`spotify:${profile.id}`);
+  const user = await thirdPartyUsers.get(`spotify:${profile.id}`);
   if (!user) {
     throw new GeneralError("No account found for this Spotify user", 401);
   }
 
   const token = nanoid();
-  sessions.add(token, { ...user, userType: "host", spotifyAccessToken: accessData.access_token, spotifyRefreshToken: accessData.refresh_token });
+  await sessions.add(token, { ...user, userType: "host", spotifyAccessToken: accessData.access_token, spotifyRefreshToken: accessData.refresh_token });
   return { token, userType: "host" };
 }
 

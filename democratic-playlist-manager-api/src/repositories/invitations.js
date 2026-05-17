@@ -1,15 +1,15 @@
-const invitations = {};
+const prisma = require("../database/prismaClient");
 
-function add(inviteToken, playlistId, playlistName) {
-  invitations[inviteToken] = { playlistId, playlistName };
+async function add(inviteToken, playlistId, playlistName) {
+  await prisma.invitation.create({ data: { inviteToken, playlistId, playlistName } });
 }
 
-function get(inviteToken) {
-  return invitations[inviteToken];
+async function get(inviteToken) {
+  return prisma.invitation.findUnique({ where: { inviteToken } });
 }
 
-function getByPlaylistId(playlistId) {
-  return Object.values(invitations).find((inv) => inv.playlistId === playlistId);
+async function getByPlaylistId(playlistId) {
+  return prisma.invitation.findFirst({ where: { playlistId } });
 }
 
 module.exports = { add, get, getByPlaylistId };

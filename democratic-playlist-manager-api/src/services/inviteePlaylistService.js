@@ -6,49 +6,53 @@ const managedPlaylists = require("../repositories/managedPlaylists");
 const inviteeTrackOwnership = require("../repositories/inviteeTrackOwnership");
 const ResourceNotFoundError = require("../errors/ResourceNotFoundError");
 
-function getHostClient(playlistId) {
-  const hostToken = managedPlaylists.getHostTokenByPlaylistId(playlistId);
+async function getHostClient(playlistId) {
+  const hostToken = await managedPlaylists.getHostTokenByPlaylistId(playlistId);
   if (!hostToken) throw new ResourceNotFoundError(`No host found for playlist [${playlistId}]`);
-  const hostSession = sessions.get(hostToken);
+  const hostSession = await sessions.get(hostToken);
   return new SpotifyClientWrapper({ accessToken: hostSession.spotifyAccessToken });
 }
 
-function getAssignedPlaylists(sessionToken) {
-  const { email } = sessions.get(sessionToken);
-  const playlistIds = inviteeAssignments.getPlaylistIds(email);
-  const playlists = playlistIds.map((playlistId) => {
-    const invitation = invitations.getByPlaylistId(playlistId);
-    return { playlistId, playlistName: invitation?.playlistName ?? playlistId };
-  });
+async function getAssignedPlaylists(sessionToken) {
+  const { email } = await sessions.get(sessionToken);
+  const playlistIds = await inviteeAssignments.getPlaylistIds(email);
+  const playlists = await Promise.all(
+    playlistIds.map(async (playlistId) => {
+      const invitation = await invitations.getByPlaylistId(playlistId);
+      return { playlistId, playlistName: invitation?.playlistName ?? playlistId };
+    })
+  );
   return { playlists };
 }
 
 async function getPlaylistTracks(playlistId, sessionToken) {
-  const spotifyApi = getHostClient(playlistId);
-  const inviteeSession = sessions.get(sessionToken);
+  const spotifyApi = await getHostClient(playlistId);
+  const inviteeSession = await sessions.get(sessionToken);
   const currentTrackId = await spotifyApi.retrieveCurrentTrackId();
   const rawTracks = await spotifyApi.retrievePlaylistTracksWithDetails(playlistId);
 
-  const tracks = rawTracks.map((item) => {
-    const ownerEmail = inviteeTrackOwnership.getOwner(playlistId, item.track.id);
-    const isOwn = ownerEmail
-      ? ownerEmail === inviteeSession.email
-      : item.added_by.id === inviteeSession.spotifyId;
-    return {
-      id: item.track.id,
-      name: item.track.name,
-      artists: item.track.artists.map((a) => a.name).join(", "),
-      addedBy: ownerEmail ?? item.added_by.id,
-      isOwn,
-      isCurrent: item.track.id === currentTrackId,
-    };
-  });
+  const tracks = await Promise.all(
+    rawTracks.map(async (item) => {
+      const ownerEmail = await inviteeTrackOwnership.getOwner(playlistId, item.track.id);
+      const isOwn = ownerEmail
+        ? ownerEmail === inviteeSession.email
+        : item.added_by.id === inviteeSession.spotifyId;
+      return {
+        id: item.track.id,
+        name: item.track.name,
+        artists: item.track.artists.map((a) => a.name).join(", "),
+        addedBy: ownerEmail ?? item.added_by.id,
+        isOwn,
+        isCurrent: item.track.id === currentTrackId,
+      };
+    })
+  );
 
   return { tracks };
 }
 
 async function searchTracks(playlistId, query) {
-  const spotifyApi = getHostClient(playlistId);
+  const spotifyApi = await getHostClient(playlistId);
   const results = await spotifyApi.searchTracks(query);
   return {
     tracks: results.map((t) => ({
@@ -61,11 +65,11 @@ async function searchTracks(playlistId, query) {
 }
 
 async function addTrack(playlistId, trackUri, sessionToken) {
-  const spotifyApi = getHostClient(playlistId);
+  const spotifyApi = await getHostClient(playlistId);
   await spotifyApi.addTrackToPlaylist(playlistId, trackUri);
-  const { email } = sessions.get(sessionToken);
+  const { email } = await sessions.get(sessionToken);
   const trackId = trackUri.split(":")[2];
-  inviteeTrackOwnership.add(playlistId, trackId, email);
+  await inviteeTrackOwnership.add(playlistId, trackId, email);
 }
 
 module.exports = { getAssignedPlaylists, getPlaylistTracks, searchTracks, addTrack };

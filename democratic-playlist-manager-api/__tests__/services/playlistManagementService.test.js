@@ -16,7 +16,7 @@ const MockSpotifyClientWrapper = require("../../src/clients/SpotifyClientWrapper
 
 jest.mock("../../src/repositories/sessions");
 const mockSessions = require("../../src/repositories/sessions");
-mockSessions.get.mockReturnValue({ spotifyAccessToken: "mock-access-token" });
+mockSessions.get.mockResolvedValue({ spotifyAccessToken: "mock-access-token" });
 
 jest.mock("../../src/repositories/managedPlaylists.js");
 const mockManagedPlaylist = require("../../src/repositories/managedPlaylists.js");
@@ -37,7 +37,7 @@ function setupSpotifyClientWrapperMock(mocks) {
 }
 
 beforeEach(() => {
-  mockInviteeTrackOwnership.getOwner.mockReturnValue(undefined);
+  mockInviteeTrackOwnership.getOwner.mockResolvedValue(undefined);
 });
 
 describe("Spotify Reorder Endpoint should be called once for each calculated movement", () => {
@@ -192,7 +192,7 @@ describe("Spotify Reorder Endpoint should be called once for each calculated mov
     const playlistTracks = playlistItemsFixture.generatePlaylistItems(playlistItems);
 
     mockInviteeTrackOwnership.getOwner.mockImplementation((playlistId, trackId) =>
-      trackId === "B1" ? "invitee@test.com" : undefined
+      Promise.resolve(trackId === "B1" ? "invitee@test.com" : undefined)
     );
 
     const expectedMappedTracks = [
@@ -230,7 +230,7 @@ describe("Spotify Reorder Endpoint should be called once for each calculated mov
     const playlistTracks = playlistItemsFixture.generatePlaylistItems(playlistItems);
 
     // No ownership record for B1 — not added through our system
-    mockInviteeTrackOwnership.getOwner.mockReturnValue(undefined);
+    mockInviteeTrackOwnership.getOwner.mockResolvedValue(undefined);
 
     const mocks = {
       retrievePlaylistTracks: jest.fn().mockResolvedValue(playlistTracks),
@@ -353,10 +353,10 @@ describe("getManagedPlaylists method", () => {
     // Arrange
     jest
       .spyOn(mockManagedPlaylist, "getAllPlaylistIds")
-      .mockReturnValue(["P1", "P2", "P3"]);
+      .mockResolvedValue(["P1", "P2", "P3"]);
 
     // Act
-    const playlists = playlistManagementService.getManagedPlaylistsIds("RFT1");
+    const playlists = await playlistManagementService.getManagedPlaylistsIds("RFT1");
 
     // Assert
     expect(playlists).toStrictEqual({ playlistIds: ["P1", "P2", "P3"] });
@@ -400,7 +400,7 @@ describe("reorderPlaylist triggering conditions", () => {
   beforeAll(() => {
     playlistManagementService.validatePlaylistBelongsToUser = jest.fn();
     playlistManagementService.validatePlaylistIsRegistred = jest.fn();
-    mockManagedPlaylist.add = jest.fn();
+    mockManagedPlaylist.add = jest.fn().mockResolvedValue(undefined);
     jest.useFakeTimers();
   });
 

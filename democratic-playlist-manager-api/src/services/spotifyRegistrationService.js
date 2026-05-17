@@ -25,22 +25,20 @@ async function registerViaSpotify(code) {
     throw new Error("Spotify authentication failed");
   }
 
-  const profileClient = new SpotifyClientWrapper({
-    accessToken: accessData.access_token,
-  });
+  const profileClient = new SpotifyClientWrapper({ accessToken: accessData.access_token });
   const profile = await profileClient.retrieveCurrentUserProfile();
 
   const providerKey = `spotify:${profile.id}`;
 
-  if (thirdPartyUsers.get(providerKey)) {
+  if (await thirdPartyUsers.get(providerKey)) {
     throw new ConflictError("User already registered with this Spotify account");
   }
 
   const user = { providerKey, spotifyId: profile.id, email: profile.email };
-  thirdPartyUsers.add(providerKey, user);
+  await thirdPartyUsers.add(providerKey, user);
 
   const sessionToken = nanoid();
-  sessions.add(sessionToken, { ...user, userType: "host", spotifyAccessToken: accessData.access_token, spotifyRefreshToken: accessData.refresh_token });
+  await sessions.add(sessionToken, { ...user, userType: "host", spotifyAccessToken: accessData.access_token, spotifyRefreshToken: accessData.refresh_token });
 
   return { token: sessionToken, userType: "host" };
 }

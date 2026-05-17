@@ -14,13 +14,13 @@ const managedPlaylists = require("../repositories/managedPlaylists");
 const AsyncLock = require("async-lock");
 const lock = new AsyncLock();
 
-function getSpotifyClient(sessionToken) {
-  const session = sessions.get(sessionToken);
+async function getSpotifyClient(sessionToken) {
+  const session = await sessions.get(sessionToken);
   return new SpotifyClientWrapper({ accessToken: session.spotifyAccessToken });
 }
 
 async function reorderPlaylistOnSpotify(playlistId, sessionToken) {
-  const spotifyAuthenticatedClient = getSpotifyClient(sessionToken);
+  const spotifyAuthenticatedClient = await getSpotifyClient(sessionToken);
   let currentPlaylistTracks =
     spotifyAuthenticatedClient.retrievePlaylistTracks(playlistId);
   let currentTrackId = spotifyAuthenticatedClient.retrieveCurrentTrackId();
@@ -32,10 +32,15 @@ async function reorderPlaylistOnSpotify(playlistId, sessionToken) {
   ]).catch((err) => {
     throw err;
   });
-  const mappedTracks = currentPlaylistTracks.map((t) => {
-    const owner = inviteeTrackOwnership.getOwner(playlistId, t.track.id);
+
+  const ownersMap = await Promise.all(
+    currentPlaylistTracks.map((t) => inviteeTrackOwnership.getOwner(playlistId, t.track.id))
+  );
+  const mappedTracks = currentPlaylistTracks.map((t, i) => {
+    const owner = ownersMap[i];
     return owner ? { ...t, added_by: { id: owner } } : t;
   });
+
   const currentTrack = mappedTracks.find((t) => t.track.id === currentTrackId) ?? {};
 
   const reorderedPlaylistTracks = playlistOrderingService.definePlaylistTracksOrder(
@@ -57,8 +62,8 @@ async function reorderPlaylistOnSpotify(playlistId, sessionToken) {
   }
 }
 
-function getManagedPlaylistsIds(sessionToken) {
-  return { playlistIds: managedPlaylists.getAllPlaylistIds(sessionToken) };
+async function getManagedPlaylistsIds(sessionToken) {
+  return { playlistIds: await managedPlaylists.getAllPlaylistIds(sessionToken) };
 }
 
 function reorderPlaylist(playlistId, sessionToken) {
@@ -75,7 +80,7 @@ async function managePlaylist(playlistId, sessionToken) {
     module.exports.reorderPlaylist(playlistId, sessionToken);
   }, globalVariables.ORDER_PLAYLIST_INTERVAL);
 
-  managedPlaylists.add(sessionToken, playlistId, { timer });
+  await managedPlaylists.add(sessionToken, playlistId, { timer });
 }
 
 async function unmanagePlaylist(playlistId, sessionToken) {
@@ -87,7 +92,7 @@ async function unmanagePlaylist(playlistId, sessionToken) {
 }
 
 async function validatePlaylistBelongsToUser(playlistId, sessionToken) {
-  const spotifyAuthenticatedClient = getSpotifyClient(sessionToken);
+  const spotifyAuthenticatedClient = await getSpotifyClient(sessionToken);
   const userPlaylists = spotifyAuthenticatedClient.retrieveUserPlaylists();
   const userId = (await spotifyAuthenticatedClient.retrieveCurrentUserProfile()).id;
   const playlistBelongsToUser = (await userPlaylists).some(

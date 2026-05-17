@@ -1,8 +1,8 @@
 const inviteePlaylistService = require("../services/inviteePlaylistService");
 
-function getAssignedPlaylists(req, res) {
+async function getAssignedPlaylists(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
-  const result = inviteePlaylistService.getAssignedPlaylists(token);
+  const result = await inviteePlaylistService.getAssignedPlaylists(token);
   res.status(200).json(result);
 }
 

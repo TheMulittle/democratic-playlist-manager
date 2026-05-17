@@ -31,8 +31,8 @@ function setupSpotifyMock(mocks) {
 }
 
 beforeEach(() => {
-  managedPlaylists.getHostTokenByPlaylistId.mockReturnValue(HOST_TOKEN);
-  sessions.get.mockImplementation((token) => {
+  managedPlaylists.getHostTokenByPlaylistId.mockResolvedValue(HOST_TOKEN);
+  sessions.get.mockImplementation(async (token) => {
     if (token === HOST_TOKEN) return { spotifyAccessToken: "host-access-token" };
     if (token === SESSION_TOKEN) return { email: INVITEE_EMAIL, spotifyId: "invitee-spotify-id" };
     return undefined;
@@ -40,19 +40,19 @@ beforeEach(() => {
 });
 
 describe("inviteePlaylistService - getAssignedPlaylists", () => {
-  it("returns playlists the invitee is assigned to", () => {
-    inviteeAssignments.getPlaylistIds.mockReturnValue([PLAYLIST_ID]);
-    invitations.getByPlaylistId.mockReturnValue({ playlistId: PLAYLIST_ID, playlistName: "My Playlist" });
+  it("returns playlists the invitee is assigned to", async () => {
+    inviteeAssignments.getPlaylistIds.mockResolvedValue([PLAYLIST_ID]);
+    invitations.getByPlaylistId.mockResolvedValue({ playlistId: PLAYLIST_ID, playlistName: "My Playlist" });
 
-    const result = inviteePlaylistService.getAssignedPlaylists(SESSION_TOKEN);
+    const result = await inviteePlaylistService.getAssignedPlaylists(SESSION_TOKEN);
 
     expect(result.playlists).toEqual([{ playlistId: PLAYLIST_ID, playlistName: "My Playlist" }]);
   });
 
-  it("returns empty list when invitee has no playlists", () => {
-    inviteeAssignments.getPlaylistIds.mockReturnValue([]);
+  it("returns empty list when invitee has no playlists", async () => {
+    inviteeAssignments.getPlaylistIds.mockResolvedValue([]);
 
-    const result = inviteePlaylistService.getAssignedPlaylists(SESSION_TOKEN);
+    const result = await inviteePlaylistService.getAssignedPlaylists(SESSION_TOKEN);
 
     expect(result.playlists).toEqual([]);
   });
@@ -60,14 +60,14 @@ describe("inviteePlaylistService - getAssignedPlaylists", () => {
 
 describe("inviteePlaylistService - getPlaylistTracks", () => {
   it("throws ResourceNotFoundError when no host manages the playlist", async () => {
-    managedPlaylists.getHostTokenByPlaylistId.mockReturnValue(undefined);
+    managedPlaylists.getHostTokenByPlaylistId.mockResolvedValue(undefined);
 
     await expect(inviteePlaylistService.getPlaylistTracks(PLAYLIST_ID, SESSION_TOKEN))
       .rejects.toThrow(ResourceNotFoundError);
   });
 
   it("marks track as own when invitee added it via the system", async () => {
-    inviteeTrackOwnership.getOwner.mockReturnValue(INVITEE_EMAIL);
+    inviteeTrackOwnership.getOwner.mockResolvedValue(INVITEE_EMAIL);
     setupSpotifyMock({
       retrieveCurrentTrackId: jest.fn().mockResolvedValue("T1"),
       retrievePlaylistTracksWithDetails: jest.fn().mockResolvedValue([
@@ -83,7 +83,7 @@ describe("inviteePlaylistService - getPlaylistTracks", () => {
   });
 
   it("marks track as not own when added by someone else", async () => {
-    inviteeTrackOwnership.getOwner.mockReturnValue(undefined);
+    inviteeTrackOwnership.getOwner.mockResolvedValue(undefined);
     setupSpotifyMock({
       retrieveCurrentTrackId: jest.fn().mockResolvedValue(""),
       retrievePlaylistTracksWithDetails: jest.fn().mockResolvedValue([
@@ -112,7 +112,7 @@ describe("inviteePlaylistService - searchTracks", () => {
   });
 
   it("throws ResourceNotFoundError when no host manages the playlist", async () => {
-    managedPlaylists.getHostTokenByPlaylistId.mockReturnValue(undefined);
+    managedPlaylists.getHostTokenByPlaylistId.mockResolvedValue(undefined);
 
     await expect(inviteePlaylistService.searchTracks(PLAYLIST_ID, "Song"))
       .rejects.toThrow(ResourceNotFoundError);
@@ -121,6 +121,7 @@ describe("inviteePlaylistService - searchTracks", () => {
 
 describe("inviteePlaylistService - addTrack", () => {
   it("adds the track via host token and records invitee ownership", async () => {
+    inviteeTrackOwnership.add.mockResolvedValue(undefined);
     setupSpotifyMock({
       addTrackToPlaylist: jest.fn().mockResolvedValue({}),
     });
@@ -131,7 +132,7 @@ describe("inviteePlaylistService - addTrack", () => {
   });
 
   it("throws ResourceNotFoundError when no host manages the playlist", async () => {
-    managedPlaylists.getHostTokenByPlaylistId.mockReturnValue(undefined);
+    managedPlaylists.getHostTokenByPlaylistId.mockResolvedValue(undefined);
 
     await expect(inviteePlaylistService.addTrack(PLAYLIST_ID, "spotify:track:T1", SESSION_TOKEN))
       .rejects.toThrow(ResourceNotFoundError);

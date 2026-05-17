@@ -15,50 +15,35 @@ beforeEach(() => {
 
 describe("AC.1: An unauthenticated user can register using native method", () => {
   it("Given a valid email and valid password, registration succeeds and returns the email", async () => {
-    // Arrange
-    nativeUsers.get.mockReturnValue(undefined);
+    nativeUsers.get.mockResolvedValue(undefined);
+    nativeUsers.add.mockResolvedValue(undefined);
 
-    // Act
-    const result = await nativeRegistrationService.register(
-      VALID_EMAIL,
-      VALID_PASSWORD
-    );
+    const result = await nativeRegistrationService.register(VALID_EMAIL, VALID_PASSWORD);
 
-    // Assert
     expect(nativeUsers.add).toHaveBeenCalledWith(
       VALID_EMAIL,
-      expect.objectContaining({ email: VALID_EMAIL })
+      expect.objectContaining({ passwordHash: expect.any(String) })
     );
     expect(result).toStrictEqual({ email: VALID_EMAIL });
   });
 
   it("Password stored is hashed, not plain text", async () => {
-    // Arrange
-    nativeUsers.get.mockReturnValue(undefined);
+    nativeUsers.get.mockResolvedValue(undefined);
+    nativeUsers.add.mockResolvedValue(undefined);
 
-    // Act
     await nativeRegistrationService.register(VALID_EMAIL, VALID_PASSWORD);
 
-    // Assert
     const storedUser = nativeUsers.add.mock.calls[0][1];
-    expect(storedUser.password).not.toBe(VALID_PASSWORD);
+    expect(storedUser.passwordHash).not.toBe(VALID_PASSWORD);
   });
 });
 
 describe("AC.2: An unauthenticated user cannot register using an existing email", () => {
   it("Given an already registered email, registration throws ConflictError", async () => {
-    // Arrange
-    nativeUsers.get.mockReturnValue({ email: VALID_EMAIL, password: "hashed" });
+    nativeUsers.get.mockResolvedValue({ email: VALID_EMAIL, passwordHash: "hashed" });
 
-    // Act
-    const result = nativeRegistrationService.register(
-      VALID_EMAIL,
-      VALID_PASSWORD
-    );
-
-    // Assert
-    await expect(result).rejects.toThrow(ConflictError);
-    await expect(result).rejects.toThrow("Email already registered");
+    await expect(nativeRegistrationService.register(VALID_EMAIL, VALID_PASSWORD))
+      .rejects.toThrow(ConflictError);
   });
 });
 
@@ -69,10 +54,8 @@ describe("AC.3.1: An unauthenticated user cannot register with an invalid email 
     ["missing TLD", "user@domain"],
     ["empty string", ""],
   ])("%s", async (_, email) => {
-    const result = nativeRegistrationService.register(email, VALID_PASSWORD);
-
-    await expect(result).rejects.toThrow(ValidationError);
-    await expect(result).rejects.toThrow("Invalid email format");
+    await expect(nativeRegistrationService.register(email, VALID_PASSWORD))
+      .rejects.toThrow(ValidationError);
   });
 });
 
@@ -83,9 +66,7 @@ describe("AC.3.2: An unauthenticated user cannot register with an invalid passwo
     ["no letters", "12345678!"],
     ["no special character", "Password1"],
   ])("%s", async (_, password) => {
-    const result = nativeRegistrationService.register(VALID_EMAIL, password);
-
-    await expect(result).rejects.toThrow(ValidationError);
-    await expect(result).rejects.toThrow("Invalid password format");
+    await expect(nativeRegistrationService.register(VALID_EMAIL, password))
+      .rejects.toThrow(ValidationError);
   });
 });

@@ -1,18 +1,14 @@
-const PersistenceError = require("../errors/PersistenceError");
+const prisma = require("../database/prismaClient");
 
-const users = {};
-
-function add(providerKey, user) {
-  if (typeof providerKey !== "string") {
-    throw new PersistenceError(
-      `Unable to persist a third party user with providerKey different than a string. Instead it was [${typeof providerKey}]`
-    );
-  }
-  users[providerKey] = user;
+async function add(providerKey, { spotifyId, email }) {
+  await prisma.user.create({
+    data: { email, spotifyId, userType: "host" },
+  });
 }
 
-function get(providerKey) {
-  return users[providerKey];
+async function get(providerKey) {
+  const spotifyId = providerKey.replace("spotify:", "");
+  return prisma.user.findUnique({ where: { spotifyId } });
 }
 
 module.exports = { add, get };

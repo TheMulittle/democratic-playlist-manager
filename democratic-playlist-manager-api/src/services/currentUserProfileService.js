@@ -2,7 +2,7 @@ const SpotifyClientWrapper = require("../clients/SpotifyClientWrapper");
 const sessions = require("../repositories/sessions");
 
 async function getPlaylists(options, sessionToken) {
-  const session = sessions.get(sessionToken);
+  const session = await sessions.get(sessionToken);
   const spotifyApi = new SpotifyClientWrapper({ accessToken: session.spotifyAccessToken });
 
   let userPlaylists = spotifyApi.retrieveUserPlaylists();
