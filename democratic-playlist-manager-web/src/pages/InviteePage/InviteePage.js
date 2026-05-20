@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import axios from '../../axios'
 import SpotifyButton from '../../UI/SpotifyButton/SpotifyButton'
 import PlaylistRow from '../../UI/PlaylistRow/PlaylistRow'
 import TrackList from '../../UI/TrackList/TrackList'
-import { clearSession } from '../../auth'
+import { clearSession, getToken } from '../../auth'
 import './InviteePage.css'
 
 const InviteePage = ({ history, location }) => {
@@ -12,6 +12,7 @@ const InviteePage = ({ history, location }) => {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [error, setError] = useState(null)
+  const wsRef = useRef(null)
 
   const params = new URLSearchParams(location.search)
   const playlistId = params.get('playlistId')
@@ -28,7 +29,26 @@ const InviteePage = ({ history, location }) => {
         .catch(() => setError('Failed to load playlists.'))
     }
     acceptAndLoad()
+    return () => { if (wsRef.current) wsRef.current.close() }
   }, [playlistId, inviteToken])
+
+  const connectWebSocket = (pid) => {
+    if (wsRef.current) {
+      wsRef.current.close()
+      wsRef.current = null
+    }
+    const token = getToken()
+    const wsBase = process.env.REACT_APP_API_BASE_URL.replace(/^http/, 'ws')
+    const ws = new WebSocket(`${wsBase}/me/invitee-playlists/${pid}/live?token=${token}`)
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data)
+      if (data.type === 'tracks_updated') {
+        setTracks(data.tracks)
+      }
+    }
+    ws.onerror = () => setError('Live connection error.')
+    wsRef.current = ws
+  }
 
   const playlistClickedHandler = (clickedId) => {
     const updated = playlists.map((p) => ({ ...p, selected: p.id === clickedId ? !p.selected : false }))
@@ -40,6 +60,9 @@ const InviteePage = ({ history, location }) => {
     const isNowSelected = updated.find((p) => p.id === clickedId)?.selected
     if (isNowSelected) {
       loadTracks(clickedId)
+      connectWebSocket(clickedId)
+    } else {
+      if (wsRef.current) { wsRef.current.close(); wsRef.current = null }
     }
   }
 

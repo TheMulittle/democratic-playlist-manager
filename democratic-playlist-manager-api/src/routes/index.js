@@ -9,6 +9,7 @@ const spotifyLoginController = require("../controllers/spotifyLoginController");
 const invitationController = require("../controllers/invitationController");
 const inviteePlaylistController = require("../controllers/inviteePlaylistController");
 const healthController = require("../controllers/healthController");
+const playlistWebSocketService = require("../services/playlistWebSocketService");
 const sessions = require("../repositories/sessions");
 
 const router = express.Router();
@@ -46,6 +47,17 @@ router.get("/me/invitee-playlists", asyncHandler(ensureAuthentication), asyncHan
 router.get("/me/invitee-playlists/:playlistId/tracks", asyncHandler(ensureAuthentication), asyncHandler(inviteePlaylistController.getPlaylistTracks));
 router.get("/me/invitee-playlists/:playlistId/search", asyncHandler(ensureAuthentication), asyncHandler(inviteePlaylistController.searchTracks));
 router.post("/me/invitee-playlists/:playlistId/tracks", asyncHandler(ensureAuthentication), asyncHandler(inviteePlaylistController.addTrack));
+
+// WebSocket: live playlist tracking
+router.ws("/me/invitee-playlists/:playlistId/live", async (ws, req) => {
+  const token = req.query.token;
+  const session = await playlistWebSocketService.authenticate(token);
+  if (!session) {
+    ws.close(4001, "Unauthorized");
+    return;
+  }
+  playlistWebSocketService.subscribe(ws, req.params.playlistId, token);
+});
 
 async function ensureAuthentication(req, res, next) {
   const token = req.headers.authorization?.split(" ")[1];

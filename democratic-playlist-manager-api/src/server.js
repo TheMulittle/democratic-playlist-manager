@@ -1,8 +1,10 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
-const boolParser = require('express-query-boolean')
+const boolParser = require('express-query-boolean');
+const expressWs = require("express-ws");
 
 const app = express();
+expressWs(app);
 app.disable("x-powered-by");
 
 const cors = require("cors");
