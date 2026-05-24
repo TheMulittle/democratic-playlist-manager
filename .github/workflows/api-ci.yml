@@ -1,0 +1,25 @@
+name: API - CI
+
+on:
+  push:
+    branches: [master, main]
+    paths: ['democratic-playlist-manager-api/**']
+  pull_request:
+    paths: ['democratic-playlist-manager-api/**']
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: democratic-playlist-manager-api
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm test
