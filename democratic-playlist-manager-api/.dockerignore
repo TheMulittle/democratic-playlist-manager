@@ -1,0 +1,12 @@
+node_modules
+coverage
+reports
+.env
+.git
+.github
+.kiro
+__tests__
+__fixtures__
+documentation
+.eslintrc
+*.log
