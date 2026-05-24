@@ -1,15 +1,27 @@
-FROM node:lts-alpine
+FROM node:lts-slim AS build
 
-ENV SPOTIFY_CALLBACK=http://localhost:8080/callback
-ENV WEB_APP_BASE_URL=http://localhost:3000
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-COPY ./node_modules ./node_modules
+COPY package.json package-lock.json ./
+COPY prisma ./prisma/
 
-COPY ./src ./src
+RUN npm ci --omit=dev
+RUN npx prisma generate
 
-COPY ./package.json .
+COPY src ./src/
+
+FROM node:lts-slim
+
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/prisma ./prisma
+COPY --from=build /app/src ./src
+COPY --from=build /app/package.json ./
 
 EXPOSE 8080
 
