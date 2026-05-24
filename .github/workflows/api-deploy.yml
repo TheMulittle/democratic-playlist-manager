@@ -1,0 +1,224 @@
+name: API - Deploy to GCP Cloud Run
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+env:
+  REGION: southamerica-east1
+  REPOSITORY: artifactory-dev
+
+defaults:
+  run:
+    working-directory: democratic-playlist-manager-api
+
+jobs:
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm test
+
+  build-dev:
+    name: Build and Push Images (Dev)
+    needs: test
+    runs-on: ubuntu-latest
+    environment: dev
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and push API image
+        run: |
+          IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPOSITORY }}/${{ secrets.SERVICE_NAME }}:${{ github.ref_name }}
+          docker build -t $IMAGE .
+          docker push $IMAGE
+
+      - name: Build and push migration image
+        run: |
+          IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPOSITORY }}/${{ secrets.SERVICE_NAME }}-migrate:${{ github.ref_name }}
+          docker build -f Dockerfile.migrate -t $IMAGE .
+          docker push $IMAGE
+
+  migrate-dev:
+    name: Migrate Database (Dev)
+    needs: build-dev
+    runs-on: ubuntu-latest
+    environment: dev
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Run migration via Cloud Run Job
+        run: |
+          IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPOSITORY }}/${{ secrets.SERVICE_NAME }}-migrate:${{ github.ref_name }}
+          gcloud run jobs deploy migrate-dev \
+            --image=$IMAGE \
+            --region=${{ env.REGION }} \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --service-account=${{ secrets.CLOUD_RUN_SERVICE_ACCOUNT }} \
+            --set-cloudsql-instances=${{ secrets.CLOUD_SQL_CONNECTION_NAME }} \
+            --vpc-connector=${{ secrets.VPC_CONNECTOR }} \
+            --set-env-vars="DATABASE_URL=${{ secrets.DATABASE_URL }}"
+          gcloud run jobs execute migrate-dev \
+            --region=${{ env.REGION }} \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --wait
+        working-directory: .
+
+  deploy-dev:
+    name: Deploy to Dev
+    needs: migrate-dev
+    runs-on: ubuntu-latest
+    environment: dev
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy to Cloud Run
+        run: |
+          IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPOSITORY }}/${{ secrets.SERVICE_NAME }}:${{ github.ref_name }}
+          gcloud run deploy ${{ secrets.SERVICE_NAME }} \
+            --image=$IMAGE \
+            --region=${{ env.REGION }} \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --platform=managed \
+            --allow-unauthenticated \
+            --service-account=${{ secrets.CLOUD_RUN_SERVICE_ACCOUNT }} \
+            --set-cloudsql-instances=${{ secrets.CLOUD_SQL_CONNECTION_NAME }} \
+            --vpc-connector=${{ secrets.VPC_CONNECTOR }} \
+            --min-instances=1 \
+            --max-instances=1 \
+            --no-cpu-throttling \
+            --set-env-vars="DATABASE_URL=${{ secrets.DATABASE_URL }},SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }},SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }},WEB_APP_BASE_URL=${{ secrets.WEB_APP_BASE_URL }},SPOTIFY_REGISTRATION_CALLBACK=${{ secrets.SPOTIFY_REGISTRATION_CALLBACK }},SPOTIFY_LOGIN_CALLBACK=${{ secrets.SPOTIFY_LOGIN_CALLBACK }}"
+        working-directory: .
+
+  build-prod:
+    name: Build and Push Images (Prod)
+    needs: deploy-dev
+    runs-on: ubuntu-latest
+    environment: prod
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and push API image
+        run: |
+          IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPOSITORY }}/${{ secrets.SERVICE_NAME }}:${{ github.ref_name }}
+          docker build -t $IMAGE .
+          docker push $IMAGE
+
+      - name: Build and push migration image
+        run: |
+          IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPOSITORY }}/${{ secrets.SERVICE_NAME }}-migrate:${{ github.ref_name }}
+          docker build -f Dockerfile.migrate -t $IMAGE .
+          docker push $IMAGE
+
+  migrate-prod:
+    name: Migrate Database (Prod)
+    needs: build-prod
+    runs-on: ubuntu-latest
+    environment: prod
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Run migration via Cloud Run Job
+        run: |
+          IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPOSITORY }}/${{ secrets.SERVICE_NAME }}-migrate:${{ github.ref_name }}
+          gcloud run jobs deploy migrate-prod \
+            --image=$IMAGE \
+            --region=${{ env.REGION }} \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --service-account=${{ secrets.CLOUD_RUN_SERVICE_ACCOUNT }} \
+            --set-cloudsql-instances=${{ secrets.CLOUD_SQL_CONNECTION_NAME }} \
+            --vpc-connector=${{ secrets.VPC_CONNECTOR }} \
+            --set-env-vars="DATABASE_URL=${{ secrets.DATABASE_URL }}"
+          gcloud run jobs execute migrate-prod \
+            --region=${{ env.REGION }} \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --wait
+
+  deploy-prod:
+    name: Deploy to Prod
+    needs: migrate-prod
+    runs-on: ubuntu-latest
+    environment: prod
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy to Cloud Run
+        run: |
+          IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPOSITORY }}/${{ secrets.SERVICE_NAME }}:${{ github.ref_name }}
+          gcloud run deploy ${{ secrets.SERVICE_NAME }} \
+            --image=$IMAGE \
+            --region=${{ env.REGION }} \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --platform=managed \
+            --allow-unauthenticated \
+            --service-account=${{ secrets.CLOUD_RUN_SERVICE_ACCOUNT }} \
+            --set-cloudsql-instances=${{ secrets.CLOUD_SQL_CONNECTION_NAME }} \
+            --vpc-connector=${{ secrets.VPC_CONNECTOR }} \
+            --min-instances=1 \
+            --max-instances=1 \
+            --no-cpu-throttling \
+            --set-env-vars="DATABASE_URL=${{ secrets.DATABASE_URL }},SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }},SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }},WEB_APP_BASE_URL=${{ secrets.WEB_APP_BASE_URL }},SPOTIFY_REGISTRATION_CALLBACK=${{ secrets.SPOTIFY_REGISTRATION_CALLBACK }},SPOTIFY_LOGIN_CALLBACK=${{ secrets.SPOTIFY_LOGIN_CALLBACK }}"
