@@ -13,7 +13,7 @@ const SpotifyRegistrationCallback = ({ location, history }) => {
     } else {
       history.replace('/register?error=registration_failed')
     }
-  }, [])
+  }, [location.search, history])
 
   return null
 }

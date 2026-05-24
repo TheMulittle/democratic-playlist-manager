@@ -13,7 +13,7 @@ const SpotifyLoginCallback = ({ location, history }) => {
     } else {
       history.replace('/login?error=login_failed')
     }
-  }, [])
+  }, [location.search, history])
 
   return null
 }

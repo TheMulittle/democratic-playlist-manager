@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import axios from '../../axios'
 import SpotifyButton from '../../UI/SpotifyButton/SpotifyButton'
-import { saveSession, getUserType } from '../../auth'
+import { saveSession } from '../../auth'
 import './LoginPage.css'
 
 const ERROR_MESSAGES = {
