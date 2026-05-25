@@ -2,6 +2,7 @@ const { nanoid } = require("nanoid");
 const SpotifyClientWrapper = require("../clients/SpotifyClientWrapper");
 const thirdPartyUsers = require("../repositories/thirdPartyUsers");
 const sessions = require("../repositories/sessions");
+const spotifyTokens = require("../repositories/spotifyTokens");
 const ConflictError = require("../errors/ConflictError");
 
 const credentials = {
@@ -37,8 +38,13 @@ async function registerViaSpotify(code) {
   const user = { providerKey, spotifyId: profile.id, email: profile.email };
   await thirdPartyUsers.add(providerKey, user);
 
+  await spotifyTokens.upsert(user.email, {
+    accessToken: accessData.access_token,
+    refreshToken: accessData.refresh_token,
+  });
+
   const sessionToken = nanoid();
-  await sessions.add(sessionToken, { ...user, userType: "host", spotifyAccessToken: accessData.access_token, spotifyRefreshToken: accessData.refresh_token });
+  await sessions.add(sessionToken, { email: user.email });
 
   return { token: sessionToken, userType: "host" };
 }

@@ -2,6 +2,7 @@ const { nanoid } = require("nanoid");
 const SpotifyClientWrapper = require("../clients/SpotifyClientWrapper");
 const thirdPartyUsers = require("../repositories/thirdPartyUsers");
 const sessions = require("../repositories/sessions");
+const spotifyTokens = require("../repositories/spotifyTokens");
 const GeneralError = require("../errors/GeneralError");
 
 const credentials = {
@@ -41,8 +42,13 @@ async function loginViaSpotify(code) {
     throw new GeneralError("No account found for this Spotify user", 401);
   }
 
+  await spotifyTokens.upsert(user.email, {
+    accessToken: accessData.access_token,
+    refreshToken: accessData.refresh_token,
+  });
+
   const token = nanoid();
-  await sessions.add(token, { ...user, userType: "host", spotifyAccessToken: accessData.access_token, spotifyRefreshToken: accessData.refresh_token });
+  await sessions.add(token, { email: user.email });
   return { token, userType: "host" };
 }
 

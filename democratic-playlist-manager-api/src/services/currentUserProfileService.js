@@ -1,26 +1,24 @@
-const SpotifyClientWrapper = require("../clients/SpotifyClientWrapper");
-const sessions = require("../repositories/sessions");
+const { withRefresh } = require("./spotifyClientFactory");
 
 async function getPlaylists(options, sessionToken) {
-  const session = await sessions.get(sessionToken);
-  const spotifyApi = new SpotifyClientWrapper({ accessToken: session.spotifyAccessToken });
+  return withRefresh(sessionToken, async (spotifyApi) => {
+    let userPlaylists = await spotifyApi.retrieveUserPlaylists();
 
-  let userPlaylists = spotifyApi.retrieveUserPlaylists();
+    if (options.mine === true || options.mine === false) {
+      const userId = (await spotifyApi.retrieveCurrentUserProfile()).id;
+      userPlaylists = userPlaylists.filter(
+        (playlist) => (playlist.owner.id === userId) === options.mine
+      );
+    }
 
-  if (options.mine === true || options.mine === false) {
-    const userId = (await spotifyApi.retrieveCurrentUserProfile()).id;
-    userPlaylists = (await userPlaylists).filter(
-      (playlist) => (playlist.owner.id === userId) === options.mine
-    );
-  }
+    if (options.collaborative === true || options.collaborative === false) {
+      userPlaylists = userPlaylists.filter(
+        (playlist) => playlist.collaborative === options.collaborative
+      );
+    }
 
-  if (options.collaborative === true || options.collaborative === false) {
-    userPlaylists = (await userPlaylists).filter(
-      (playlist) => playlist.collaborative === options.collaborative
-    );
-  }
-
-  return { playlists: await userPlaylists };
+    return { playlists: userPlaylists };
+  });
 }
 
 module.exports = { getPlaylists };

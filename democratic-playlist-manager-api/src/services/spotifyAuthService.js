@@ -2,6 +2,7 @@ const { nanoid } = require("nanoid");
 const SpotifyClientWrapper = require("../clients/SpotifyClientWrapper");
 const thirdPartyUsers = require("../repositories/thirdPartyUsers");
 const sessions = require("../repositories/sessions");
+const spotifyTokens = require("../repositories/spotifyTokens");
 
 const credentials = {
   redirectUri: process.env.SPOTIFY_LOGIN_CALLBACK,
@@ -43,13 +44,13 @@ async function authenticateViaSpotify(code) {
     await thirdPartyUsers.add(providerKey, user);
   }
 
-  const token = nanoid();
-  await sessions.add(token, {
-    ...user,
-    userType: "host",
-    spotifyAccessToken: accessData.access_token,
-    spotifyRefreshToken: accessData.refresh_token,
+  await spotifyTokens.upsert(user.email, {
+    accessToken: accessData.access_token,
+    refreshToken: accessData.refresh_token,
   });
+
+  const token = nanoid();
+  await sessions.add(token, { email: user.email });
 
   return { token, userType: "host" };
 }

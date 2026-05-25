@@ -7,6 +7,7 @@ const ConflictError = require("../../src/errors/ConflictError");
 jest.mock("../../src/repositories/thirdPartyUsers");
 jest.mock("../../src/repositories/sessions");
 jest.mock("../../src/clients/SpotifyClientWrapper");
+jest.mock("../../src/repositories/spotifyTokens");
 const MockSpotifyClientWrapper = require("../../src/clients/SpotifyClientWrapper");
 
 const MOCK_PROFILE = { id: "spotify-user-123", email: "user@spotify.com" };
@@ -38,7 +39,7 @@ describe("AC.1: An unauthenticated user can register using a third party service
       "spotify:spotify-user-123",
       expect.objectContaining({ spotifyId: MOCK_PROFILE.id, email: MOCK_PROFILE.email })
     );
-    expect(sessions.add).toHaveBeenCalledWith(result.token, expect.objectContaining({ spotifyId: MOCK_PROFILE.id }));
+    expect(sessions.add).toHaveBeenCalledWith(result.token, expect.objectContaining({ email: MOCK_PROFILE.email }));
     expect(result.userType).toBe("host");
     expect(typeof result.token).toBe("string");
     expect(result.token.length).toBeGreaterThan(0);

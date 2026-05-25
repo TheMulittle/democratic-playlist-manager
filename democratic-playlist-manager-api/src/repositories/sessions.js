@@ -1,24 +1,24 @@
 const prisma = require("../database/prismaClient");
 
-async function add(token, { email, userType, spotifyAccessToken, spotifyRefreshToken }) {
+async function add(token, { email }) {
   const user = await prisma.user.findUnique({ where: { email } });
   await prisma.session.create({
-    data: { token, userId: user.id, spotifyAccessToken, spotifyRefreshToken },
+    data: { token, userId: user.id },
   });
 }
 
 async function get(token) {
   const session = await prisma.session.findUnique({
     where: { token },
-    include: { user: true },
+    include: { user: { include: { spotifyToken: true } } },
   });
   if (!session) return undefined;
   return {
     email: session.user.email,
     userType: session.user.userType,
     spotifyId: session.user.spotifyId,
-    spotifyAccessToken: session.spotifyAccessToken,
-    spotifyRefreshToken: session.spotifyRefreshToken,
+    spotifyAccessToken: session.user.spotifyToken?.accessToken,
+    spotifyRefreshToken: session.user.spotifyToken?.refreshToken,
   };
 }
 

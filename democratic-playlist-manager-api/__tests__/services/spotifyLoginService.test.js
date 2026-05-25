@@ -7,6 +7,7 @@ const GeneralError = require("../../src/errors/GeneralError");
 jest.mock("../../src/repositories/thirdPartyUsers");
 jest.mock("../../src/repositories/sessions");
 jest.mock("../../src/clients/SpotifyClientWrapper");
+jest.mock("../../src/repositories/spotifyTokens");
 const MockSpotifyClientWrapper = require("../../src/clients/SpotifyClientWrapper");
 
 const MOCK_PROFILE = { id: "spotify-user-123", email: "user@spotify.com" };
@@ -31,7 +32,7 @@ describe("AC.2: A third party registered user can login with Spotify", () => {
     const result = await spotifyLoginService.loginViaSpotify("auth-code");
 
     // Assert
-    expect(sessions.add).toHaveBeenCalledWith(result.token, expect.objectContaining({ userType: "host" }));
+    expect(sessions.add).toHaveBeenCalledWith(result.token, expect.objectContaining({ email: "user@spotify.com" }));
     expect(result.userType).toBe("host");
     expect(typeof result.token).toBe("string");
     expect(result.token.length).toBeGreaterThan(0);
