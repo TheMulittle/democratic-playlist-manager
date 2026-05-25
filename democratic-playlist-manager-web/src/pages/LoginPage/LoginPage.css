@@ -1,39 +1,72 @@
 .LoginPage {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  align-items: center;
+  gap: 16px;
   width: 100%;
-  max-width: 400px;
-  margin: 40px auto;
-  padding: 0 16px;
+  max-width: 360px;
+  margin: 0 auto;
+  padding: 48px 24px;
   box-sizing: border-box;
+  min-height: 100vh;
+  justify-content: center;
 }
 
 .LoginPage h2 {
   text-align: center;
   margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
 }
 
 .LoginPage input {
-  padding: 12px 14px;
-  font-size: 14px;
-  border: 1px solid #ccc;
+  padding: 14px 16px;
+  font-size: 16px;
+  border: 1px solid #535353;
   border-radius: 500px;
   width: 100%;
   box-sizing: border-box;
+  background-color: #242424;
+  color: #ffffff;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.LoginPage input::placeholder {
+  color: #a7a7a7;
+}
+
+.LoginPage input:focus {
+  border-color: #1db954;
 }
 
 .LoginPage .divider {
   text-align: center;
-  color: #888;
+  color: #a7a7a7;
   font-size: 13px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.LoginPage .divider::before,
+.LoginPage .divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: #535353;
 }
 
 .LoginPage .error {
-  color: #e74c3c;
+  color: #f15e6c;
   text-align: center;
+  font-size: 14px;
 }
 
 .LoginPage p {
   text-align: center;
+  color: #a7a7a7;
+  font-size: 14px;
 }

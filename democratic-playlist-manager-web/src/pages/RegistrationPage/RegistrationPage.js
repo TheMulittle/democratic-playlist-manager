@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
 import axios from '../../axios'
 import SpotifyButton from '../../UI/SpotifyButton/SpotifyButton'
 import './RegistrationPage.css'
 
 const ERROR_MESSAGES = {
-  already_registered: 'This Spotify account is already registered.',
   spotify_auth_failed: 'Spotify authentication failed. Please try again.',
   registration_failed: 'Registration failed. Please try again.',
 }
@@ -34,6 +34,10 @@ const RegistrationPage = ({ location }) => {
   return (
     <div className="RegistrationPage">
       <h2>Create an account</h2>
+      <a href={`${process.env.REACT_APP_API_BASE_URL}/users/auth/spotify`} style={{ width: '100%' }}>
+        <SpotifyButton>Continue with Spotify</SpotifyButton>
+      </a>
+      <div className="divider">or</div>
       <input
         type="email"
         placeholder="Email"
@@ -45,13 +49,11 @@ const RegistrationPage = ({ location }) => {
         placeholder="Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        onKeyDown={(e) => e.key === 'Enter' && submitHandler()}
       />
       <SpotifyButton clicked={submitHandler}>Register</SpotifyButton>
-      <div className="divider">or</div>
-      <a href={`${process.env.REACT_APP_API_BASE_URL}/users/register/spotify`}>
-        <SpotifyButton>Register with Spotify</SpotifyButton>
-      </a>
       {message && <p className={success ? 'success' : 'error'}>{message}</p>}
+      <p>Already have an account? <Link to="/login">Login here</Link></p>
     </div>
   )
 }

@@ -6,6 +6,7 @@ const nativeRegistrationController = require("../controllers/nativeRegistrationC
 const spotifyRegistrationController = require("../controllers/spotifyRegistrationController");
 const nativeLoginController = require("../controllers/nativeLoginController");
 const spotifyLoginController = require("../controllers/spotifyLoginController");
+const spotifyAuthController = require("../controllers/spotifyAuthController");
 const invitationController = require("../controllers/invitationController");
 const inviteePlaylistController = require("../controllers/inviteePlaylistController");
 const healthController = require("../controllers/healthController");
@@ -26,6 +27,10 @@ router.post("/users/login", asyncHandler(nativeLoginController.login));
 router.post("/users/logout", asyncHandler(nativeLoginController.logout));
 router.get("/users/login/spotify", spotifyLoginController.initiateSpotifyLogin);
 router.get("/users/login/spotify/callback", asyncHandler(spotifyLoginController.spotifyLoginCallback));
+
+// Unified Spotify auth (register or login)
+router.get("/users/auth/spotify", spotifyAuthController.initiateSpotifyAuth);
+router.get("/users/auth/spotify/callback", asyncHandler(spotifyAuthController.spotifyAuthCallback));
 
 // Legacy Spotify playlist management routes (untouched)
 router.get("/secret-login", index.login);

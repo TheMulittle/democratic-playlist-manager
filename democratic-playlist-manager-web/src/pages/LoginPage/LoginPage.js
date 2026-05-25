@@ -33,7 +33,11 @@ const LoginPage = ({ location, history }) => {
 
   return (
     <div className="LoginPage">
-      <h2>Login</h2>
+      <h2>Democratic Playlist Manager</h2>
+      <a href={`${process.env.REACT_APP_API_BASE_URL}/users/auth/spotify`} style={{ width: '100%' }}>
+        <SpotifyButton>Continue with Spotify</SpotifyButton>
+      </a>
+      <div className="divider">or</div>
       <input
         type="email"
         placeholder="Email"
@@ -45,12 +49,9 @@ const LoginPage = ({ location, history }) => {
         placeholder="Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        onKeyDown={(e) => e.key === 'Enter' && submitHandler()}
       />
       <SpotifyButton clicked={submitHandler}>Login</SpotifyButton>
-      <div className="divider">or</div>
-      <a href={`${process.env.REACT_APP_API_BASE_URL}/users/login/spotify`}>
-        <SpotifyButton>Login with Spotify</SpotifyButton>
-      </a>
       {message && <p className="error">{message}</p>}
       <p>Don't have an account? <Link to="/register">Register here</Link></p>
     </div>
