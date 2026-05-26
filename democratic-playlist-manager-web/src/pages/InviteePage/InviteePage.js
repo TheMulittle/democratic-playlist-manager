@@ -46,7 +46,12 @@ const InviteePage = ({ history, location }) => {
         setTracks(data.tracks)
       }
     }
-    ws.onerror = () => setError('Live connection error.')
+    ws.onclose = (event) => {
+      if (event.code !== 1000 && wsRef.current === ws) {
+        setTimeout(() => connectWebSocket(pid), 3000)
+      }
+    }
+    ws.onerror = () => {}
     wsRef.current = ws
   }
 

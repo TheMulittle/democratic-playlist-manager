@@ -124,6 +124,7 @@ jobs:
             --min-instances=1 \
             --max-instances=1 \
             --no-cpu-throttling \
+            --timeout=3600 \
             --set-env-vars="DATABASE_URL=${{ secrets.DATABASE_URL }},SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }},SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }},WEB_APP_BASE_URL=${{ secrets.WEB_APP_BASE_URL }},SPOTIFY_REGISTRATION_CALLBACK=${{ secrets.SPOTIFY_REGISTRATION_CALLBACK }},SPOTIFY_LOGIN_CALLBACK=${{ secrets.SPOTIFY_LOGIN_CALLBACK }}"
         working-directory: .
 
@@ -225,4 +226,5 @@ jobs:
             --min-instances=1 \
             --max-instances=1 \
             --no-cpu-throttling \
+            --timeout=3600 \
             --set-env-vars="DATABASE_URL=${{ secrets.DATABASE_URL }},SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }},SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }},WEB_APP_BASE_URL=${{ secrets.WEB_APP_BASE_URL }},SPOTIFY_REGISTRATION_CALLBACK=${{ secrets.SPOTIFY_REGISTRATION_CALLBACK }},SPOTIFY_LOGIN_CALLBACK=${{ secrets.SPOTIFY_LOGIN_CALLBACK }}"
