@@ -20,7 +20,7 @@ const RegistrationPage = ({ location }) => {
 
   const submitHandler = () => {
     axios
-      .post(`${process.env.REACT_APP_API_BASE_URL}/users/register`, { email, password })
+      .post(`${import.meta.env.VITE_API_BASE_URL}/users/register`, { email, password })
       .then((res) => {
         setSuccess(true)
         setMessage(`Registered successfully as ${res.data.email}`)
@@ -34,7 +34,7 @@ const RegistrationPage = ({ location }) => {
   return (
     <div className="RegistrationPage">
       <h2>Create an account</h2>
-      <a href={`${process.env.REACT_APP_API_BASE_URL}/users/auth/spotify`} style={{ width: '100%' }}>
+      <a href={`${import.meta.env.VITE_API_BASE_URL}/users/auth/spotify`} style={{ width: '100%' }}>
         <SpotifyButton>Continue with Spotify</SpotifyButton>
       </a>
       <div className="divider">or</div>

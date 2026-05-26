@@ -4,7 +4,7 @@ import { clearSession } from '../../auth'
 
 const HostPage = ({ history }) => {
   const logoutHandler = () => {
-    axios.post(`${process.env.REACT_APP_API_BASE_URL}/users/logout`)
+    axios.post(`${import.meta.env.VITE_API_BASE_URL}/users/logout`)
       .finally(() => {
         clearSession()
         history.push('/login')

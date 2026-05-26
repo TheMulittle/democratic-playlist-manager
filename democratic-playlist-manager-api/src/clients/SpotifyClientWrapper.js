@@ -5,6 +5,13 @@ class SpotifyClientWrapper {
     this.spotifyApi = new SpotifyWebApi(credentials);
   }
 
+  _handleError(err, context) {
+    if (err?.statusCode === 401 || err?.status === 401) {
+      throw err;
+    }
+    console.error(`Error while ${context}!\nError:${err}`);
+  }
+
   async authenticate(code) {
     const data = await this.spotifyApi
       .authorizationCodeGrant(code)
@@ -43,7 +50,7 @@ class SpotifyClientWrapper {
           return data.body;
         })
         .catch((err) => {
-          console.error(`Error while retrieving playlist tracks!\nError:${err}`);
+          this._handleError(err, "retrieving playlist tracks");
         });
     } while (tracksPage.total > offsetCounter);
     return tracksInfo;
@@ -68,7 +75,7 @@ class SpotifyClientWrapper {
           return data.body;
         })
         .catch((err) => {
-          console.error(`Error while retrieving playlist tracks with details!\nError:${err}`);
+          this._handleError(err, "retrieving playlist tracks with details");
         });
     } while (tracksPage.total > offsetCounter);
     return tracksInfo;
@@ -79,7 +86,7 @@ class SpotifyClientWrapper {
       .getPlaylist(playlistId, { fields: "snapshot_id" })
       .then((data) => data.body?.snapshot_id ?? "")
       .catch((err) => {
-        console.error(`Error while retrieving playlist snapshotId!\nError:${err}`);
+        this._handleError(err, "retrieving playlist snapshotId");
         return "";
       });
   }
@@ -89,7 +96,7 @@ class SpotifyClientWrapper {
       .getMyCurrentPlaybackState()
       .then((data) => data.body.item?.id ?? "")
       .catch((err) => {
-        console.error(`Error while getting User´s playback state!\nError:${err}`);
+        this._handleError(err, "getting playback state");
         return "";
       });
   }
@@ -100,7 +107,7 @@ class SpotifyClientWrapper {
       .getMe()
       .then((data) => data.body ?? {})
       .catch((err) => {
-        console.error(`Error while getting User Profile!\nError:${err}`);
+        this._handleError(err, "getting user profile");
         return "";
       });
   }
@@ -110,7 +117,7 @@ class SpotifyClientWrapper {
       .getUserPlaylists({ limit: 50 })
       .then((data) => data.body?.items ?? [])
       .catch((err) => {
-        console.error(`Error while retrieving User Playlists!\nError:${err}`);
+        this._handleError(err, "retrieving user playlists");
         return [];
       });
   }
@@ -126,7 +133,7 @@ class SpotifyClientWrapper {
       );
       return reply?.body?.snapshot_id ?? "";
     } catch (err) {
-      console.error(`Error while reordering Tracks in Playlists!\nError:${err}\nRetrying...`);
+      this._handleError(err, "reordering tracks");
       await this.reorderTracksInPlaylist(playlistId, positionInCurentPlaylist, positionInOrderedPlaylist, options);
     }
   }
@@ -136,7 +143,7 @@ class SpotifyClientWrapper {
       .searchTracks(query, { limit: 10 })
       .then((data) => data.body?.tracks?.items ?? [])
       .catch((err) => {
-        console.error(`Error while searching tracks!\nError:${err}`);
+        this._handleError(err, "searching tracks");
         return [];
       });
   }
@@ -146,7 +153,7 @@ class SpotifyClientWrapper {
       .addTracksToPlaylist(playlistId, [trackUri])
       .then((data) => data.body)
       .catch((err) => {
-        console.error(`Error while adding track to playlist!\nError:${err}`);
+        this._handleError(err, "adding track to playlist");
       });
   }
 
@@ -155,7 +162,7 @@ class SpotifyClientWrapper {
       .refreshAccessToken()
       .then((data) => data?.body ?? {})
       .catch((err) => {
-        console.error(`Error while refreshing token!\nError:${err}`);
+        this._handleError(err, "refreshing token");
       });
   }
 }

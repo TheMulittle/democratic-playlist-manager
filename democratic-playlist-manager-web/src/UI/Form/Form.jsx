@@ -15,7 +15,7 @@ const Form = (props) => {
   const playlistClickedHandler = () => {
     axios
       .post(
-        `${process.env.REACT_APP_API_BASE_URL}/playlist`,
+        `${import.meta.env.VITE_API_BASE_URL}/playlist`,
         { playlistId: playlistId },
         { withCredentials: true },
       )

@@ -21,10 +21,10 @@ const InviteePage = ({ history, location }) => {
   useEffect(() => {
     const acceptAndLoad = async () => {
       if (playlistId && inviteToken) {
-        await axios.post(`${process.env.REACT_APP_API_BASE_URL}/invitations/${playlistId}/${inviteToken}/accept`)
+        await axios.post(`${import.meta.env.VITE_API_BASE_URL}/invitations/${playlistId}/${inviteToken}/accept`)
           .catch(() => {})
       }
-      axios.get(`${process.env.REACT_APP_API_BASE_URL}/me/invitee-playlists`)
+      axios.get(`${import.meta.env.VITE_API_BASE_URL}/me/invitee-playlists`)
         .then((res) => setPlaylists(res.data.playlists.map((p) => ({ id: p.playlistId, name: p.playlistName, selected: false }))))
         .catch(() => setError('Failed to load playlists.'))
     }
@@ -38,7 +38,7 @@ const InviteePage = ({ history, location }) => {
       wsRef.current = null
     }
     const token = getToken()
-    const wsBase = process.env.REACT_APP_API_BASE_URL.replace(/^http/, 'ws')
+    const wsBase = import.meta.env.VITE_API_BASE_URL.replace(/^http/, 'ws')
     const ws = new WebSocket(`${wsBase}/me/invitee-playlists/${pid}/live?token=${token}`)
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data)
@@ -72,7 +72,7 @@ const InviteePage = ({ history, location }) => {
   }
 
   const loadTracks = (pid) => {
-    axios.get(`${process.env.REACT_APP_API_BASE_URL}/me/invitee-playlists/${pid}/tracks`)
+    axios.get(`${import.meta.env.VITE_API_BASE_URL}/me/invitee-playlists/${pid}/tracks`)
       .then((res) => setTracks(res.data.tracks))
       .catch(() => setError('Failed to load tracks.'))
   }
@@ -81,7 +81,7 @@ const InviteePage = ({ history, location }) => {
     if (!searchQuery.trim()) return
     const pid = playlists.find((p) => p.selected)?.id
     if (!pid) return
-    axios.get(`${process.env.REACT_APP_API_BASE_URL}/me/invitee-playlists/${pid}/search?q=${encodeURIComponent(searchQuery)}`)
+    axios.get(`${import.meta.env.VITE_API_BASE_URL}/me/invitee-playlists/${pid}/search?q=${encodeURIComponent(searchQuery)}`)
       .then((res) => setSearchResults(res.data.tracks))
       .catch(() => setError('Search failed.'))
   }
@@ -89,7 +89,7 @@ const InviteePage = ({ history, location }) => {
   const addTrackHandler = (trackUri) => {
     const pid = playlists.find((p) => p.selected)?.id
     if (!pid) return
-    axios.post(`${process.env.REACT_APP_API_BASE_URL}/me/invitee-playlists/${pid}/tracks`, { trackUri })
+    axios.post(`${import.meta.env.VITE_API_BASE_URL}/me/invitee-playlists/${pid}/tracks`, { trackUri })
       .then(() => {
         setSearchResults([])
         setSearchQuery('')
@@ -99,7 +99,7 @@ const InviteePage = ({ history, location }) => {
   }
 
   const logoutHandler = () => {
-    axios.post(`${process.env.REACT_APP_API_BASE_URL}/users/logout`)
+    axios.post(`${import.meta.env.VITE_API_BASE_URL}/users/logout`)
       .finally(() => { clearSession(); history.push('/login') })
   }
 

@@ -20,7 +20,7 @@ const LoginPage = ({ location, history }) => {
 
   const submitHandler = () => {
     axios
-      .post(`${process.env.REACT_APP_API_BASE_URL}/users/login`, { email, password })
+      .post(`${import.meta.env.VITE_API_BASE_URL}/users/login`, { email, password })
       .then((res) => {
         saveSession(res.data.token, res.data.userType)
         const redirect = params.get('redirect')
@@ -34,7 +34,7 @@ const LoginPage = ({ location, history }) => {
   return (
     <div className="LoginPage">
       <h2>Democratic Playlist Manager</h2>
-      <a href={`${process.env.REACT_APP_API_BASE_URL}/users/auth/spotify`} style={{ width: '100%' }}>
+      <a href={`${import.meta.env.VITE_API_BASE_URL}/users/auth/spotify`} style={{ width: '100%' }}>
         <SpotifyButton>Continue with Spotify</SpotifyButton>
       </a>
       <div className="divider">or</div>

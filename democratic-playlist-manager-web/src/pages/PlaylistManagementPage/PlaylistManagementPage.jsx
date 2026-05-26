@@ -12,7 +12,7 @@ const PlaylistManagementPage = (props) => {
   const defaultImage = ''
 
   const logoutHandler = () => {
-    axios.post(`${process.env.REACT_APP_API_BASE_URL}/users/logout`)
+    axios.post(`${import.meta.env.VITE_API_BASE_URL}/users/logout`)
       .finally(() => {
         clearSession()
         props.history.push('/login')
@@ -20,7 +20,7 @@ const PlaylistManagementPage = (props) => {
   }
 
   useEffect(() => {
-    axios.get(`${process.env.REACT_APP_API_BASE_URL}/me/playlist?mine=true`)
+    axios.get(`${import.meta.env.VITE_API_BASE_URL}/me/playlist?mine=true`)
       .then((res) => {
         const playlists = res.data.playlists.map((playlist) => ({
           id: playlist.id,
@@ -37,8 +37,8 @@ const PlaylistManagementPage = (props) => {
     const playlists = [...collaborativePlaylists]
     const playlist = playlists.find((p) => p.id === playlistId)
     const request = playlist.selected
-      ? axios.delete(`${process.env.REACT_APP_API_BASE_URL}/playlist/${playlistId}`)
-      : axios.post(`${process.env.REACT_APP_API_BASE_URL}/playlist/${playlistId}`)
+      ? axios.delete(`${import.meta.env.VITE_API_BASE_URL}/playlist/${playlistId}`)
+      : axios.post(`${import.meta.env.VITE_API_BASE_URL}/playlist/${playlistId}`)
 
     request
       .then(() => {
@@ -50,13 +50,13 @@ const PlaylistManagementPage = (props) => {
   }
 
   const shareClickHandler = (playlistId, playlistName) => {
-    axios.post(`${process.env.REACT_APP_API_BASE_URL}/invitations`, { playlistId, playlistName })
+    axios.post(`${import.meta.env.VITE_API_BASE_URL}/invitations`, { playlistId, playlistName })
       .then((res) => setInviteLink(res.data.inviteLink))
       .catch((err) => console.error('Error generating invite link', err))
   }
 
   const forceReorderClickHandler = () => {
-    axios.post(`${process.env.REACT_APP_API_BASE_URL}/trigger-reorder`)
+    axios.post(`${import.meta.env.VITE_API_BASE_URL}/trigger-reorder`)
       .catch((err) => console.error('Error reordering', err))
   }
 
