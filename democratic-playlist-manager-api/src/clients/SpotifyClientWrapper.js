@@ -9,7 +9,7 @@ class SpotifyClientWrapper {
     if (err?.statusCode === 401 || err?.status === 401) {
       throw err;
     }
-    console.error(`Error while ${context}!\nError:${err}`);
+    console.error(`Error while ${context}!`, JSON.stringify(err, null, 2), err?.body, err?.statusCode);
   }
 
   async authenticate(code) {

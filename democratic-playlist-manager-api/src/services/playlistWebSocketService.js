@@ -1,7 +1,7 @@
 const sessions = require("../repositories/sessions");
 const inviteePlaylistService = require("../services/inviteePlaylistService");
 
-const POLL_INTERVAL = 1000;
+const POLL_INTERVAL = 5000;
 const playlistSubscribers = new Map(); // playlistId -> Set<{ ws, token }>
 const playlistPollers = new Map(); // playlistId -> intervalId
 const lastSnapshots = new Map(); // playlistId -> JSON string
