@@ -1,4 +1,4 @@
-FROM node:lts-slim AS build
+FROM node:24-slim AS build
 
 RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
@@ -12,7 +12,7 @@ RUN npx prisma generate
 
 COPY src ./src/
 
-FROM node:lts-slim
+FROM node:24-slim
 
 RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
